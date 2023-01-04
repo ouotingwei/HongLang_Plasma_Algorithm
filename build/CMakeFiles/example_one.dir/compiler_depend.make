@@ -1919,13 +1919,17 @@ CMakeFiles/example_one.dir/main.cpp.o: /home/tingweiou/HongLang_project/main.cpp
   /usr/local/include/vtk-8.2/vtkPolygon.h \
   /usr/local/include/vtk-8.2/vtkUnstructuredGrid.h \
   /usr/local/include/vtk-8.2/vtkUnstructuredGridBase.h \
-  /usr/local/include/vtk-8.2/vtkOBJReader.h \
+  /usr/local/include/vtk-8.2/vtkSTLReader.h \
   /usr/local/include/vtk-8.2/vtkIOGeometryModule.h \
   /usr/local/include/vtk-8.2/vtkAbstractPolyDataReader.h \
   /usr/local/include/vtk-8.2/vtkIOCoreModule.h \
   /usr/local/include/vtk-8.2/vtkTriangle.h \
-  /usr/local/include/vtk-8.2/vtkTriangleFilter.h
+  /usr/local/include/vtk-8.2/vtkTriangleFilter.h \
+  /usr/local/include/eigen3/Eigen/Dense \
+  /usr/local/include/eigen3/Eigen/Eigenvalues
 
+
+/usr/local/include/eigen3/Eigen/Dense:
 
 /usr/local/include/vtk-8.2/vtkTriangleFilter.h:
 
@@ -1937,7 +1941,7 @@ CMakeFiles/example_one.dir/main.cpp.o: /home/tingweiou/HongLang_project/main.cpp
 
 /usr/local/include/vtk-8.2/vtkIOGeometryModule.h:
 
-/usr/local/include/vtk-8.2/vtkOBJReader.h:
+/usr/local/include/vtk-8.2/vtkSTLReader.h:
 
 /usr/local/include/vtk-8.2/vtkUnstructuredGrid.h:
 
