@@ -2,7 +2,7 @@
 
 Version : V1
 Deadline : 2023 / 01 / 16
-Author : TingWei Ou
+Author : TingWei Ou, PoLin Jiang
 Discription : HongLang Project
 */
 #include<iostream>
