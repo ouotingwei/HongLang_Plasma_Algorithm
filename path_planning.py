@@ -13,37 +13,65 @@ from matplotlib import pyplot as plt
 import open3d as o3d
 import csv
 
-# read .xyz file
-pcd = o3d.io.read_point_cloud("test.xyz")
+def xyz_2_point(diameter, overlap):
+    # find the distance between two working path
+    sample_dis = diameter * (1 - (overlap*0.01))
 
-o3d.visualization.draw_geometries([pcd], window_name="test",
-                                  point_show_normal=True,
-                                  width=800, 
-                                  height=600)  
-print("origin : ",pcd)
+    # read .xyz file
+    global pcd 
+    pcd = o3d.io.read_point_cloud("test.xyz")
 
-downpcd = pcd.voxel_down_sample(voxel_size=10)
-o3d.visualization.draw_geometries([downpcd])
-print('downsample pointcloud',downpcd)
-o3d.io.write_point_cloud('result_down.ply', downpcd)
-pcd = o3d.io.read_point_cloud("result_down.ply")
+    o3d.visualization.draw_geometries([pcd], window_name="test",
+                                    point_show_normal=True,
+                                    width=800, 
+                                    height=600)  
+    print("origin : ",pcd)
 
-radius = 8
-max_nn = 5
+    downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
+    o3d.visualization.draw_geometries([downpcd])
+    print('downsample pointcloud',downpcd)
+    o3d.io.write_point_cloud('result_down.ply', downpcd)
+    pcd = o3d.io.read_point_cloud("result_down.ply")
 
-pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
+    radius = 8
+    max_nn = 5
 
-totol_point = np.asarray(pcd.normals)[:,:].size/3
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
 
-pcd.paint_uniform_color([1, 0.706, 0])
+    totol_point = np.asarray(pcd.normals)[:,:].size/3
 
-for i in range(0,int(totol_point)):
-    if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
-        np.asarray(pcd.colors)[i, :] = [0, 0, 1]
+    pcd.paint_uniform_color([1, 0.706, 0])
 
-o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 1000.0])) 
-o3d.visualization.draw_geometries([pcd], window_name="result",
-                                  point_show_normal=True,
-                                  width=800,  
-                                  height=600)  
+    for i in range(0,int(totol_point)):
+        if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
+            np.asarray(pcd.colors)[i, :] = [0, 0, 1]
+
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 1000.0])) 
+    o3d.visualization.draw_geometries([pcd], window_name="result",
+                                    point_show_normal=True,
+                                    width=800,  
+                                    height=600)  
+def point_2_ls():
+    print(pcd) 
+    # berlin
+
+def main():
+    diameter = float(input("[@]diameter (mm)"))
+    overlap = int(input("[@]overlap (0~90%)"))
+
+    xyz_2_point(diameter, overlap)
+    point_2_ls()
+
+
+
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
 
