@@ -1,3 +1,0 @@
-/home/tingweiou/HongLang_project/build/CMakeFiles/example_one.dir
-/home/tingweiou/HongLang_project/build/CMakeFiles/edit_cache.dir
-/home/tingweiou/HongLang_project/build/CMakeFiles/rebuild_cache.dir
