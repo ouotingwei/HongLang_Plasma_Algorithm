@@ -19,7 +19,7 @@ def xyz_2_point(diameter, overlap):
 
     # read .xyz file
     global pcd 
-    pcd = o3d.io.read_point_cloud("002_rand.xyz")
+    pcd = o3d.io.read_point_cloud(file_name)
 
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
@@ -48,8 +48,8 @@ def point_cloud_planning():
     point_arr = np.asarray(pcd.points)
     normal_arr = np.asarray(pcd.normals)
     
-    print("origin")
-    print(point_arr)
+    #print("origin")
+    #print(point_arr)
 
     n = len(point_arr)
     while n > 1:
@@ -58,10 +58,20 @@ def point_cloud_planning():
             if point_arr[i][0] > point_arr[i+1][0]:  
                 point_arr[i][0], point_arr[i+1][0] = point_arr[i+1][0], point_arr[i][0]
                 normal_arr[i][0], normal_arr[i+1][0] = normal_arr[i+1][0], normal_arr[i][0]
+    print("origin_arr")
+    print(normal_arr)
     
-    print(point_arr)
+    while n > 1:
+        n-=1
+        for i in range(n):
+            normal_arr[i][0] = normal_arr[i][0]*180/3.1415
+            normal_arr[i][1] = normal_arr[i][1]*180/3.1415
+            normal_arr[i][2] = normal_arr[i][2]*180/3.1415
+    
+    print("after_arr")
+    print(normal_arr)
 
-
+    point_2_ls()
 
 
 def point_2_ls():
@@ -69,12 +79,14 @@ def point_2_ls():
     # berlin
 
 def main():
+    global file_name
+
     diameter = float(input("[@]diameter (mm)"))
     overlap = int(input("[@]overlap (0~90%)"))
+    file_name = str(input("[@]file name : "))
 
     xyz_2_point(diameter, overlap)
     point_cloud_planning()
-    point_2_ls()
 
 
 
