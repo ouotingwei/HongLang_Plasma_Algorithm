@@ -2,6 +2,8 @@
 # Deadline : 2023 / 01 / 16
 # Author : TingWei Ou
 # Discription : HongLang Project
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import cv2
 import numpy as np 
@@ -21,11 +23,11 @@ def xyz_2_point(diameter, overlap):
     global pcd 
     pcd = o3d.io.read_point_cloud(file_name)
 
-    o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
-    print("origin : ",pcd)
+    #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    #print("origin : ",pcd)
 
     downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
-    o3d.visualization.draw_geometries([downpcd])
+    #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
@@ -47,29 +49,33 @@ def xyz_2_point(diameter, overlap):
 def point_cloud_planning():
     point_arr = np.asarray(pcd.points)
     normal_arr = np.asarray(pcd.normals)
-    
-    #print("origin")
-    #print(point_arr)
 
-    n = len(point_arr)
-    while n > 1:
-        n-=1
-        for i in range(n):        
-            if point_arr[i][0] > point_arr[i+1][0]:  
-                point_arr[i][0], point_arr[i+1][0] = point_arr[i+1][0], point_arr[i][0]
-                normal_arr[i][0], normal_arr[i+1][0] = normal_arr[i+1][0], normal_arr[i][0]
-    print("origin_arr")
-    print(normal_arr)
+    print(point_arr)
     
-    while n > 1:
-        n-=1
-        for i in range(n):
+    n = len(point_arr)
+    for i in range(n-2):
+        for j in range(n-i-1):
+            if point_arr[j][0] > point_arr[j+1][0]:
+                point_arr[j][0], point_arr[j+1][0] = point_arr[j+1][0], point_arr[j][0]
+                point_arr[j][1], point_arr[j+1][1] = point_arr[j+1][1], point_arr[j][1]
+                point_arr[j][2], point_arr[j+1][2] = point_arr[j+1][2], point_arr[j][2]
+    
+    print("")
+    print("")
+    print(point_arr)
+
+
+
+    
+
+
+    # angle transform
+    temp = 0
+    while temp < len(point_arr):
             normal_arr[i][0] = normal_arr[i][0]*180/3.1415
             normal_arr[i][1] = normal_arr[i][1]*180/3.1415
             normal_arr[i][2] = normal_arr[i][2]*180/3.1415
-    
-    print("after_arr")
-    print(normal_arr)
+            temp = temp + 1
 
     point_2_ls()
 
@@ -81,9 +87,9 @@ def point_2_ls():
 def main():
     global file_name
 
-    diameter = float(input("[@]diameter (mm)"))
-    overlap = int(input("[@]overlap (0~90%)"))
-    file_name = str(input("[@]file name : "))
+    diameter = float(input("[Q]diameter (mm) : "))
+    overlap = int(input("[Q]overlap (0~90%) : "))
+    file_name = str(input("[Q]file name(.xyz) : "))
 
     xyz_2_point(diameter, overlap)
     point_cloud_planning()
