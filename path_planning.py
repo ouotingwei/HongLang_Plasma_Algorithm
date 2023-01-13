@@ -14,6 +14,7 @@ import PIL.Image
 from matplotlib import pyplot as plt 
 import open3d as o3d
 import csv
+import math
 
 def xyz_2_point(diameter, overlap):
     # find the distance between two working path
@@ -43,14 +44,12 @@ def xyz_2_point(diameter, overlap):
         if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 80.0])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100.0])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
 def point_cloud_planning():
     point_arr = np.asarray(pcd.points)
     normal_arr = np.asarray(pcd.normals)
-
-    print(point_arr)
     
     n = len(point_arr)
     for i in range(n-2):
@@ -59,30 +58,48 @@ def point_cloud_planning():
                 point_arr[j][0], point_arr[j+1][0] = point_arr[j+1][0], point_arr[j][0]
                 point_arr[j][1], point_arr[j+1][1] = point_arr[j+1][1], point_arr[j][1]
                 point_arr[j][2], point_arr[j+1][2] = point_arr[j+1][2], point_arr[j][2]
-    
-    print("")
-    print("")
-    print(point_arr)
-
-
-
-    
-
-
+                normal_arr[j][0], normal_arr[j+1][0] = normal_arr[j+1][0], normal_arr[j][0]
+                normal_arr[j][1], normal_arr[j+1][1] = normal_arr[j+1][1], normal_arr[j][1]
+                normal_arr[j][2], normal_arr[j+1][2] = normal_arr[j+1][2], normal_arr[j][2]
+                
     # angle transform
-    temp = 0
-    while temp < len(point_arr):
-            normal_arr[i][0] = normal_arr[i][0]*180/3.1415
-            normal_arr[i][1] = normal_arr[i][1]*180/3.1415
-            normal_arr[i][2] = normal_arr[i][2]*180/3.1415
-            temp = temp + 1
+    i = 0
+    while i < len(point_arr):
+        normal_x = math.acos(math.sqrt(math.pow(normal_arr[i][0], 2) + math.pow(normal_arr[i][2], 2)) / (pow(normal_arr[i][0], 2) + pow(normal_arr[i][1], 2) + pow(normal_arr[i][2], 2)))
+        normal_x = rad2deg(normal_x)
 
+        if normal_arr[i][1] > 0:
+            normal_x = 360 - normal_x
+
+        normal_y = math.atan(normal_arr[i][0] / normal_arr[i][2])
+        normal_y = rad2deg(normal_y)
+
+        if normal_y <0:
+            normal_y = normal_y + 180
+
+        if normal_arr[i][0] < 0:
+            normal_y = normal_y + 180
+
+        normal_z = 0
+
+        normal_arr[i][0] = normal_x
+        normal_arr[i][1] = normal_y
+        normal_arr[i][2] = normal_z
+
+        i = i + 1
+
+    print(normal_arr)
     point_2_ls()
 
 
 def point_2_ls():
     print(type(pcd)) 
     # berlin
+
+def rad2deg(rad):
+    return rad*180/3.1415
+    
+
 
 def main():
     global file_name
