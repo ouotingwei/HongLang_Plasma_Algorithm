@@ -55,13 +55,17 @@ def xyz_2_point(diameter, overlap):
         if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100.0])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
 def point_cloud_planning():
+    global point_arr
+    global normal_arr
+
     point_arr = np.asarray(pcd.points)
     normal_arr = np.asarray(pcd.normals)
     
+    #ARRANGE IN ORDER X
     n = len(point_arr)
     for i in range(n-2):
         for j in range(n-i-1):
@@ -72,34 +76,46 @@ def point_cloud_planning():
                 normal_arr[j][0], normal_arr[j+1][0] = normal_arr[j+1][0], normal_arr[j][0]
                 normal_arr[j][1], normal_arr[j+1][1] = normal_arr[j+1][1], normal_arr[j][1]
                 normal_arr[j][2], normal_arr[j+1][2] = normal_arr[j+1][2], normal_arr[j][2]
-                
-    # angle transform
+
+    #INITALIZATION
+    count_arr = np.zeros(((len(point_arr), 5)), float)
     i = 0
-    while i < len(point_arr):
-        normal_x = math.acos(math.sqrt(math.pow(normal_arr[i][0], 2) + math.pow(normal_arr[i][2], 2)) / (pow(normal_arr[i][0], 2) + pow(normal_arr[i][1], 2) + pow(normal_arr[i][2], 2)))
-        normal_x = rad2deg(normal_x)
+    flag = 0
+    time = 1
+    count_arr[0][3] = 1
+    count_arr[len(point_arr)-1][0] = point_arr[len(point_arr)-1][0]
+    count_arr[len(point_arr)-1][1] = point_arr[len(point_arr)-1][1]
+    count_arr[len(point_arr)-1][2] = point_arr[len(point_arr)-1][2]
 
-        if normal_arr[i][1] > 0:
-            normal_x = 360 - normal_x
-
-        normal_y = math.atan(normal_arr[i][0] / normal_arr[i][2])
-        normal_y = rad2deg(normal_y)
-
-        if normal_y <0:
-            normal_y = normal_y + 180
-
-        if normal_arr[i][0] < 0:
-            normal_y = normal_y + 180
-
-        normal_z = 0
-
-        normal_arr[i][0] = normal_x
-        normal_arr[i][1] = normal_y
-        normal_arr[i][2] = normal_z
+    #SORT
+    while i < len(point_arr) - 1:
+        count_arr[i][0] = point_arr[i][0]
+        count_arr[i][1] = point_arr[i][1]
+        count_arr[i][2] = point_arr[i][2]
+        
+        if round(point_arr[i+1][0]) != round(point_arr[i][0]) :
+            flag = flag + 1
+            count_arr[i+1][4] = flag
+            count_arr[i+1][3] = time = 1
+        else:
+            count_arr[i+1][4] = flag
+            time = time + 1
+            count_arr[i+1][3] = time 
 
         i = i + 1
 
-    print(normal_arr)
+    #ARRANGE IN ORDER Y
+    i = 0
+    while i < len(point_arr) - 1:
+        
+        
+        i = i+1
+    
+    #FINAL POINT
+    print(count_arr)
+    print(len(count_arr))
+
+    #print(normal_arr)
 
     global waypoints 
     waypoints = []
@@ -108,6 +124,7 @@ def point_cloud_planning():
         waypoints.append(WayPoints(point_arr[i][0] + tf[0], point_arr[i][1] + tf[1], point_arr[i][2] + tf[2], normal_arr[i][0], normal_arr[i][1], normal_arr[i][2]))
     
     point_2_ls(output_file, waypoints)
+
 
 def point_2_ls(file, waypoints):
     f = open(file, 'w')
@@ -149,9 +166,12 @@ def point_2_ls(file, waypoints):
     f.write("/END\n")
     f.close()
 
+
 def rad2deg(rad):
     return rad*180/3.1415
     
+
+
 
 
 def main():
