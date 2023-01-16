@@ -27,6 +27,7 @@ class WayPoints:
         self.V = V  # velocity
         self.C = C  # continuity
 
+
 def xyz_2_point(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
@@ -58,6 +59,7 @@ def xyz_2_point(diameter, overlap):
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
+
 def point_cloud_planning():
     global point_arr
     global normal_arr
@@ -67,7 +69,7 @@ def point_cloud_planning():
     
     #ARRANGE IN ORDER X
     n = len(point_arr)
-    for i in range(n-2):
+    for i in range(n-1):
         for j in range(n-i-1):
             if point_arr[j][0] > point_arr[j+1][0]:
                 point_arr[j][0], point_arr[j+1][0] = point_arr[j+1][0], point_arr[j][0]
@@ -76,9 +78,12 @@ def point_cloud_planning():
                 normal_arr[j][0], normal_arr[j+1][0] = normal_arr[j+1][0], normal_arr[j][0]
                 normal_arr[j][1], normal_arr[j+1][1] = normal_arr[j+1][1], normal_arr[j][1]
                 normal_arr[j][2], normal_arr[j+1][2] = normal_arr[j+1][2], normal_arr[j][2]
+    
+    #print(point_arr)
+    #print("")
 
     #INITALIZATION
-    count_arr = np.zeros(((len(point_arr), 5)), float)
+    count_arr = np.zeros(((len(point_arr) + 1, 8)), float)
     i = 0
     flag = 0
     time = 1
@@ -87,11 +92,21 @@ def point_cloud_planning():
     count_arr[len(point_arr)-1][1] = point_arr[len(point_arr)-1][1]
     count_arr[len(point_arr)-1][2] = point_arr[len(point_arr)-1][2]
 
+    count_arr[len(point_arr)-1][5] = normal_arr[len(point_arr)-1][0]
+    count_arr[len(point_arr)-1][6] = normal_arr[len(point_arr)-1][1]
+    count_arr[len(point_arr)-1][7] = normal_arr[len(point_arr)-1][2]
+
+    count_arr[len(point_arr)][3] = 1
+    count_arr[len(point_arr)][4] = 4
+
     #SORT
     while i < len(point_arr) - 1:
         count_arr[i][0] = point_arr[i][0]
         count_arr[i][1] = point_arr[i][1]
         count_arr[i][2] = point_arr[i][2]
+        count_arr[i][5] = normal_arr[i][0]
+        count_arr[i][6] = normal_arr[i][1]
+        count_arr[i][7] = normal_arr[i][2]
         
         if round(point_arr[i+1][0]) != round(point_arr[i][0]) :
             flag = flag + 1
@@ -106,14 +121,91 @@ def point_cloud_planning():
 
     #ARRANGE IN ORDER Y
     i = 0
-    while i < len(point_arr) - 1:
-        
-        
-        i = i+1
+    while i < len(point_arr) :
+
+        if count_arr[i+1][3] == 1 :
+            n = int(count_arr[i][3])
+
+            if (int(count_arr[i][4]) % 2) == 0:
+                cnt = 0
+                temp_arr = np.zeros(((n, 8)), float)
+
+                while cnt < n:
+                    temp_arr[cnt][0] = count_arr[i-n+cnt+1][0]
+                    temp_arr[cnt][1] = count_arr[i-n+cnt+1][1]
+                    temp_arr[cnt][2] = count_arr[i-n+cnt+1][2]
+                    temp_arr[cnt][5] = count_arr[i-n+cnt+1][5]
+                    temp_arr[cnt][6] = count_arr[i-n+cnt+1][6]
+                    temp_arr[cnt][7] = count_arr[i-n+cnt+1][7]
+                    cnt = cnt + 1           
+
+                for temp in range(n-1):
+                    for j in range(n-temp-1):
+                        if temp_arr[j][1] > temp_arr[j+1][1]:
+                            temp_arr[j][0], temp_arr[j+1][0] = temp_arr[j+1][0], temp_arr[j][0]
+                            temp_arr[j][1], temp_arr[j+1][1] = temp_arr[j+1][1], temp_arr[j][1]
+                            temp_arr[j][2], temp_arr[j+1][2] = temp_arr[j+1][2], temp_arr[j][2]
+                            temp_arr[j][5], temp_arr[j+1][5] = temp_arr[j+1][5], temp_arr[j][5]
+                            temp_arr[j][6], temp_arr[j+1][6] = temp_arr[j+1][6], temp_arr[j][6]
+                            temp_arr[j][7], temp_arr[j+1][7] = temp_arr[j+1][7], temp_arr[j][7]
+                            
+                        
+                cnt = 0
+                while cnt < n:
+                    count_arr[i-n+cnt+1][0] = temp_arr[cnt][0]
+                    count_arr[i-n+cnt+1][1] = temp_arr[cnt][1]
+                    count_arr[i-n+cnt+1][2] = temp_arr[cnt][2]
+                    count_arr[i-n+cnt+1][5] = temp_arr[cnt][5]
+                    count_arr[i-n+cnt+1][6] = temp_arr[cnt][6]
+                    count_arr[i-n+cnt+1][7] = temp_arr[cnt][7]
+                    cnt = cnt + 1
+
+            elif (int(count_arr[i][4]) % 2) == 1:
+                cnt = 0
+                temp_arr = np.zeros(((n, 8)), float)
+
+                while cnt < n:
+                    temp_arr[cnt][0] = count_arr[i-n+cnt+1][0]
+                    temp_arr[cnt][1] = count_arr[i-n+cnt+1][1]
+                    temp_arr[cnt][2] = count_arr[i-n+cnt+1][2]
+                    temp_arr[cnt][5] = count_arr[i-n+cnt+1][5]
+                    temp_arr[cnt][6] = count_arr[i-n+cnt+1][6]
+                    temp_arr[cnt][7] = count_arr[i-n+cnt+1][7]
+                    cnt = cnt + 1
+                    
+
+                for temp in range(n-1):
+                    for j in range(n-temp-1):
+                        if temp_arr[j][1] < temp_arr[j+1][1]:
+                            temp_arr[j][0], temp_arr[j+1][0] = temp_arr[j+1][0], temp_arr[j][0]
+                            temp_arr[j][1], temp_arr[j+1][1] = temp_arr[j+1][1], temp_arr[j][1]
+                            temp_arr[j][2], temp_arr[j+1][2] = temp_arr[j+1][2], temp_arr[j][2]
+                            temp_arr[j][5], temp_arr[j+1][5] = temp_arr[j+1][5], temp_arr[j][5]
+                            temp_arr[j][6], temp_arr[j+1][6] = temp_arr[j+1][6], temp_arr[j][6]
+                            temp_arr[j][7], temp_arr[j+1][7] = temp_arr[j+1][7], temp_arr[j][7]
+                        
+                cnt = 0
+                while cnt < n:
+                    count_arr[i-n+cnt+1][0] = temp_arr[cnt][0]
+                    count_arr[i-n+cnt+1][1] = temp_arr[cnt][1]
+                    count_arr[i-n+cnt+1][2] = temp_arr[cnt][2]
+                    count_arr[i-n+cnt+1][5] = temp_arr[cnt][5]
+                    count_arr[i-n+cnt+1][6] = temp_arr[cnt][6]
+                    count_arr[i-n+cnt+1][7] = temp_arr[cnt][7]
+                    cnt = cnt + 1
+ 
+        i = i + 1
     
-    #FINAL POINT
-    print(count_arr)
-    print(len(count_arr))
+    i = 0
+    while i < len(point_arr):
+        point_arr[i][0] = count_arr[i][0]
+        point_arr[i][1] = count_arr[i][1]
+        point_arr[i][2] = count_arr[i][2]
+        normal_arr[i][0] = count_arr[i][5] = 90
+        normal_arr[i][1] = count_arr[i][6] = 0
+        normal_arr[i][2] = count_arr[i][7] = 90
+
+        i = i + 1
 
     #print(normal_arr)
 
@@ -158,7 +250,7 @@ def point_2_ls(file, waypoints):
     for i in range(1,len(waypoints)+1):
         f.write("P[" + str(i) + "]{\n")
         f.write("   GP1:\n")
-        f.write("	UF : 0, UT : 1,		CONFIG : 'N U T, 0, 0, 0',\n")
+        f.write("	UF : 0, UT : 6,		CONFIG : 'N U T, 0, 0, 0',\n")
         f.write("	X =  " + "{:.3f}".format(waypoints[i-1].x) + "  mm,	Y =   "+ "{:.3f}".format(waypoints[i-1].y) + "  mm,	Z =   "+ "{:.3f}".format(waypoints[i-1].z) + "  mm,\n")
         f.write("	W =  " + "{:.3f}".format(waypoints[i-1].W) + " deg,	P =   " + "{:.3f}".format(waypoints[i-1].P) + " deg,	R =   " + "{:.3f}".format(waypoints[i-1].R) + " deg\n")
         f.write("};\n")
@@ -171,9 +263,6 @@ def rad2deg(rad):
     return rad*180/3.1415
     
 
-
-
-
 def main():
     global file_name
     global output_file
@@ -185,7 +274,6 @@ def main():
 
     xyz_2_point(diameter, overlap)
     point_cloud_planning()
-
 
 
 if __name__ == '__main__':
