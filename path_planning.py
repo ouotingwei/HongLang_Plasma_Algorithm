@@ -56,7 +56,7 @@ def xyz_2_point(diameter, overlap):
         if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
 
@@ -199,7 +199,7 @@ def point_cloud_planning():
     i = 0
     while i < len(point_arr):
         point_arr[i][0] = count_arr[i][0]
-        point_arr[i][1] = count_arr[i][1]
+        point_arr[i][1] = count_arr[i][1] 
         point_arr[i][2] = count_arr[i][2]
         normal_arr[i][0] = count_arr[i][5] = 90
         normal_arr[i][1] = count_arr[i][6] = 0
@@ -207,20 +207,22 @@ def point_cloud_planning():
 
         i = i + 1
 
-    #print(normal_arr)
-
     global waypoints 
     waypoints = []
     for i in range(0,len(point_arr)):
-        tf = [500, 0, -270]
-        waypoints.append(WayPoints(point_arr[i][0] + tf[0], point_arr[i][1] + tf[1], point_arr[i][2] + tf[2], normal_arr[i][0], normal_arr[i][1], normal_arr[i][2]))
-    
-    point_2_ls(output_file, waypoints)
+        theta = 60*3.1415/180
+        transition = [280, -400, -270] 
+        rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
+        position = np.matmul(point_arr[i], rotation) 
+        position = position + transition
+        waypoints.append(WayPoints(position[0], position[1], position[2], normal_arr[i][0], normal_arr[i][1], normal_arr[i][2]))
 
+    point_2_ls(output_file, waypoints)
+    
 
 def point_2_ls(file, waypoints):
     f = open(file, 'w')
-    f.write("/PROG  PNS888\n")
+    f.write("/PROG  "+output_file+"\n")
     f.write("/ATTR\n")
     f.write("OWNER       = MNEDITOR;\n")
     f.write("COMMENT     = \"\";\n")
