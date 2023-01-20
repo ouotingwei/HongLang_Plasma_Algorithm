@@ -209,15 +209,14 @@ def point_cloud_planning():
 
     global waypoints 
     waypoints = []
+
     for i in range(0,len(point_arr)):
         theta = 60*3.1415/180
-        transition = [280, -400, -270] 
+        transition = [280 , -400, -270] 
         rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
         position = np.matmul(point_arr[i], rotation) 
         position = position + transition
         waypoints.append(WayPoints(position[0], position[1], position[2], normal_arr[i][0], normal_arr[i][1], normal_arr[i][2]))
-
-    point_2_ls(output_file, waypoints)
     
 
 def point_2_ls(file, waypoints):
@@ -276,6 +275,7 @@ def main():
 
     xyz_2_point(diameter, overlap)
     point_cloud_planning()
+    point_2_ls(output_file, waypoints)
 
 
 if __name__ == '__main__':
