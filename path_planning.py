@@ -16,6 +16,7 @@ import open3d as o3d
 import csv
 import math
 
+
 class WayPoints:
     def __init__(self, x=0.000, y=0.000, z=0.000, W=0.000, P=0.000, R=0.000, V=100, C="CNT0"):
         self.x = x  # x
@@ -34,7 +35,7 @@ def xyz_2_point(diameter, overlap):
 
     # read .xyz file
     global pcd 
-    pcd = o3d.io.read_point_cloud(file_name)
+    pcd = o3d.io.read_point_cloud(FileName)
 
     #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     #print("origin : ",pcd)
@@ -61,167 +62,165 @@ def xyz_2_point(diameter, overlap):
 
 
 def point_cloud_planning():
-    global point_arr
-    global normal_arr
+    global PointArray
+    global NormalArray
 
-    point_arr = np.asarray(pcd.points)
-    normal_arr = np.asarray(pcd.normals)
+    PointArray = np.asarray(pcd.points)
+    NormalArray = np.asarray(pcd.normals)
     
     #ARRANGE IN ORDER X
-    n = len(point_arr)
+    n = len(PointArray)
     for i in range(n-1):
         for j in range(n-i-1):
-            if point_arr[j][0] > point_arr[j+1][0]:
-                point_arr[j][0], point_arr[j+1][0] = point_arr[j+1][0], point_arr[j][0]
-                point_arr[j][1], point_arr[j+1][1] = point_arr[j+1][1], point_arr[j][1]
-                point_arr[j][2], point_arr[j+1][2] = point_arr[j+1][2], point_arr[j][2]
-                normal_arr[j][0], normal_arr[j+1][0] = normal_arr[j+1][0], normal_arr[j][0]
-                normal_arr[j][1], normal_arr[j+1][1] = normal_arr[j+1][1], normal_arr[j][1]
-                normal_arr[j][2], normal_arr[j+1][2] = normal_arr[j+1][2], normal_arr[j][2]
+            if PointArray[j][0] > PointArray[j+1][0]:
+                PointArray[j][0], PointArray[j+1][0] = PointArray[j+1][0], PointArray[j][0]
+                PointArray[j][1], PointArray[j+1][1] = PointArray[j+1][1], PointArray[j][1]
+                PointArray[j][2], PointArray[j+1][2] = PointArray[j+1][2], PointArray[j][2]
+                NormalArray[j][0], NormalArray[j+1][0] = NormalArray[j+1][0], NormalArray[j][0]
+                NormalArray[j][1], NormalArray[j+1][1] = NormalArray[j+1][1], NormalArray[j][1]
+                NormalArray[j][2], NormalArray[j+1][2] = NormalArray[j+1][2], NormalArray[j][2]
     
     #print(point_arr)
     #print("")
 
     #INITALIZATION
-    count_arr = np.zeros(((len(point_arr) + 1, 8)), float)
+    CountingArray = np.zeros(((len(PointArray) + 1, 8)), float)
     i = 0
     flag = 0
     time = 1
-    count_arr[0][3] = 1
-    count_arr[len(point_arr)-1][0] = point_arr[len(point_arr)-1][0]
-    count_arr[len(point_arr)-1][1] = point_arr[len(point_arr)-1][1]
-    count_arr[len(point_arr)-1][2] = point_arr[len(point_arr)-1][2]
+    CountingArray[0][3] = 1
+    CountingArray[len(PointArray)-1][0] = PointArray[len(PointArray)-1][0]
+    CountingArray[len(PointArray)-1][1] = PointArray[len(PointArray)-1][1]
+    CountingArray[len(PointArray)-1][2] = PointArray[len(PointArray)-1][2]
 
-    count_arr[len(point_arr)-1][5] = normal_arr[len(point_arr)-1][0]
-    count_arr[len(point_arr)-1][6] = normal_arr[len(point_arr)-1][1]
-    count_arr[len(point_arr)-1][7] = normal_arr[len(point_arr)-1][2]
+    CountingArray[len(PointArray)-1][5] = NormalArray[len(PointArray)-1][0]
+    CountingArray[len(PointArray)-1][6] = NormalArray[len(PointArray)-1][1]
+    CountingArray[len(PointArray)-1][7] = NormalArray[len(PointArray)-1][2]
 
-    count_arr[len(point_arr)][3] = 1
-    count_arr[len(point_arr)][4] = 4
+    CountingArray[len(PointArray)][3] = 1
+    CountingArray[len(PointArray)][4] = 4
 
     #SORT
-    while i < len(point_arr) - 1:
-        count_arr[i][0] = point_arr[i][0]
-        count_arr[i][1] = point_arr[i][1]
-        count_arr[i][2] = point_arr[i][2]
-        count_arr[i][5] = normal_arr[i][0]
-        count_arr[i][6] = normal_arr[i][1]
-        count_arr[i][7] = normal_arr[i][2]
+    while i < len(PointArray) - 1:
+        CountingArray[i][0] = PointArray[i][0]
+        CountingArray[i][1] = PointArray[i][1]
+        CountingArray[i][2] = PointArray[i][2]
+        CountingArray[i][5] = NormalArray[i][0]
+        CountingArray[i][6] = NormalArray[i][1]
+        CountingArray[i][7] = NormalArray[i][2]
         
-        if round(point_arr[i+1][0]) != round(point_arr[i][0]) :
+        if round(PointArray[i+1][0]) != round(PointArray[i][0]) :
             flag = flag + 1
-            count_arr[i+1][4] = flag
-            count_arr[i+1][3] = time = 1
+            CountingArray[i+1][4] = flag
+            CountingArray[i+1][3] = time = 1
         else:
-            count_arr[i+1][4] = flag
+            CountingArray[i+1][4] = flag
             time = time + 1
-            count_arr[i+1][3] = time 
+            CountingArray[i+1][3] = time 
 
         i = i + 1
 
     #ARRANGE IN ORDER Y
     i = 0
-    while i < len(point_arr) :
+    while i < len(PointArray) :
 
-        if count_arr[i+1][3] == 1 :
-            n = int(count_arr[i][3])
+        if CountingArray[i+1][3] == 1 :
+            n = int(CountingArray[i][3])
 
-            if (int(count_arr[i][4]) % 2) == 0:
+            if (int(CountingArray[i][4]) % 2) == 0:
                 cnt = 0
-                temp_arr = np.zeros(((n, 8)), float)
+                TempArray = np.zeros(((n, 8)), float)
 
                 while cnt < n:
-                    temp_arr[cnt][0] = count_arr[i-n+cnt+1][0]
-                    temp_arr[cnt][1] = count_arr[i-n+cnt+1][1]
-                    temp_arr[cnt][2] = count_arr[i-n+cnt+1][2]
-                    temp_arr[cnt][5] = count_arr[i-n+cnt+1][5]
-                    temp_arr[cnt][6] = count_arr[i-n+cnt+1][6]
-                    temp_arr[cnt][7] = count_arr[i-n+cnt+1][7]
+                    TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
+                    TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
+                    TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
+                    TempArray[cnt][6] = CountingArray[i-n+cnt+1][6]
+                    TempArray[cnt][7] = CountingArray[i-n+cnt+1][7]
                     cnt = cnt + 1           
 
                 for temp in range(n-1):
                     for j in range(n-temp-1):
-                        if temp_arr[j][1] > temp_arr[j+1][1]:
-                            temp_arr[j][0], temp_arr[j+1][0] = temp_arr[j+1][0], temp_arr[j][0]
-                            temp_arr[j][1], temp_arr[j+1][1] = temp_arr[j+1][1], temp_arr[j][1]
-                            temp_arr[j][2], temp_arr[j+1][2] = temp_arr[j+1][2], temp_arr[j][2]
-                            temp_arr[j][5], temp_arr[j+1][5] = temp_arr[j+1][5], temp_arr[j][5]
-                            temp_arr[j][6], temp_arr[j+1][6] = temp_arr[j+1][6], temp_arr[j][6]
-                            temp_arr[j][7], temp_arr[j+1][7] = temp_arr[j+1][7], temp_arr[j][7]
-                            
+                        if TempArray[j][1] > TempArray[j+1][1]:
+                            TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
+                            TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]
+                            TempArray[j][6], TempArray[j+1][6] = TempArray[j+1][6], TempArray[j][6]
+                            TempArray[j][7], TempArray[j+1][7] = TempArray[j+1][7], TempArray[j][7]     
                         
                 cnt = 0
                 while cnt < n:
-                    count_arr[i-n+cnt+1][0] = temp_arr[cnt][0]
-                    count_arr[i-n+cnt+1][1] = temp_arr[cnt][1]
-                    count_arr[i-n+cnt+1][2] = temp_arr[cnt][2]
-                    count_arr[i-n+cnt+1][5] = temp_arr[cnt][5]
-                    count_arr[i-n+cnt+1][6] = temp_arr[cnt][6]
-                    count_arr[i-n+cnt+1][7] = temp_arr[cnt][7]
+                    CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
+                    CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
+                    CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
+                    CountingArray[i-n+cnt+1][6] = TempArray[cnt][6]
+                    CountingArray[i-n+cnt+1][7] = TempArray[cnt][7]
                     cnt = cnt + 1
 
-            elif (int(count_arr[i][4]) % 2) == 1:
+            elif (int(CountingArray[i][4]) % 2) == 1:
                 cnt = 0
-                temp_arr = np.zeros(((n, 8)), float)
+                TempArray = np.zeros(((n, 8)), float)
 
                 while cnt < n:
-                    temp_arr[cnt][0] = count_arr[i-n+cnt+1][0]
-                    temp_arr[cnt][1] = count_arr[i-n+cnt+1][1]
-                    temp_arr[cnt][2] = count_arr[i-n+cnt+1][2]
-                    temp_arr[cnt][5] = count_arr[i-n+cnt+1][5]
-                    temp_arr[cnt][6] = count_arr[i-n+cnt+1][6]
-                    temp_arr[cnt][7] = count_arr[i-n+cnt+1][7]
-                    cnt = cnt + 1
-                    
+                    TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
+                    TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
+                    TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
+                    TempArray[cnt][6] = CountingArray[i-n+cnt+1][6]
+                    TempArray[cnt][7] = CountingArray[i-n+cnt+1][7]
+                    cnt = cnt + 1  
 
                 for temp in range(n-1):
                     for j in range(n-temp-1):
-                        if temp_arr[j][1] < temp_arr[j+1][1]:
-                            temp_arr[j][0], temp_arr[j+1][0] = temp_arr[j+1][0], temp_arr[j][0]
-                            temp_arr[j][1], temp_arr[j+1][1] = temp_arr[j+1][1], temp_arr[j][1]
-                            temp_arr[j][2], temp_arr[j+1][2] = temp_arr[j+1][2], temp_arr[j][2]
-                            temp_arr[j][5], temp_arr[j+1][5] = temp_arr[j+1][5], temp_arr[j][5]
-                            temp_arr[j][6], temp_arr[j+1][6] = temp_arr[j+1][6], temp_arr[j][6]
-                            temp_arr[j][7], temp_arr[j+1][7] = temp_arr[j+1][7], temp_arr[j][7]
+                        if TempArray[j][1] < TempArray[j+1][1]:
+                            TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
+                            TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]
+                            TempArray[j][6], TempArray[j+1][6] = TempArray[j+1][6], TempArray[j][6]
+                            TempArray[j][7], TempArray[j+1][7] = TempArray[j+1][7], TempArray[j][7]
                         
                 cnt = 0
                 while cnt < n:
-                    count_arr[i-n+cnt+1][0] = temp_arr[cnt][0]
-                    count_arr[i-n+cnt+1][1] = temp_arr[cnt][1]
-                    count_arr[i-n+cnt+1][2] = temp_arr[cnt][2]
-                    count_arr[i-n+cnt+1][5] = temp_arr[cnt][5]
-                    count_arr[i-n+cnt+1][6] = temp_arr[cnt][6]
-                    count_arr[i-n+cnt+1][7] = temp_arr[cnt][7]
+                    CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
+                    CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
+                    CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
+                    CountingArray[i-n+cnt+1][6] = TempArray[cnt][6]
+                    CountingArray[i-n+cnt+1][7] = TempArray[cnt][7]
                     cnt = cnt + 1
  
         i = i + 1
     
     i = 0
-    while i < len(point_arr):
-        point_arr[i][0] = count_arr[i][0]
-        point_arr[i][1] = count_arr[i][1] 
-        point_arr[i][2] = count_arr[i][2]
-        normal_arr[i][0] = count_arr[i][5] = 90
-        normal_arr[i][1] = count_arr[i][6] = 0
-        normal_arr[i][2] = count_arr[i][7] = 90
+    while i < len(PointArray):
+        PointArray[i][0] = CountingArray[i][0]
+        PointArray[i][1] = CountingArray[i][1] 
+        PointArray[i][2] = CountingArray[i][2]
+        NormalArray[i][0] = CountingArray[i][5] = 90
+        NormalArray[i][1] = CountingArray[i][6] = 0
+        NormalArray[i][2] = CountingArray[i][7] = 90
 
         i = i + 1
 
     global waypoints 
     waypoints = []
 
-    for i in range(0,len(point_arr)):
+    for i in range(0,len(PointArray)):
         theta = 60*3.1415/180
         transition = [280 , -400, -270] 
         rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
-        position = np.matmul(point_arr[i], rotation) 
+        position = np.matmul(PointArray[i], rotation) 
         position = position + transition
-        waypoints.append(WayPoints(position[0], position[1], position[2], normal_arr[i][0], normal_arr[i][1], normal_arr[i][2]))
+        waypoints.append(WayPoints(position[0], position[1], position[2], NormalArray[i][0], NormalArray[i][1], NormalArray[i][2]))
     
 
 def point_2_ls(file, waypoints):
     f = open(file, 'w')
-    f.write("/PROG  "+output_file+"\n")
+    f.write("/PROG  "+OutputFile+"\n")
     f.write("/ATTR\n")
     f.write("OWNER       = MNEDITOR;\n")
     f.write("COMMENT     = \"\";\n")
@@ -265,17 +264,17 @@ def rad2deg(rad):
     
 
 def main():
-    global file_name
-    global output_file
+    global FileName
+    global OutputFile
 
     diameter = float(input("[Q]diameter (mm) : "))
     overlap = int(input("[Q]overlap (0~90%) : "))
-    file_name = str(input("[Q]file name(.xyz) : "))
-    output_file = str(input("[Q]output file name(.LS) : "))
+    FileName = str(input("[Q]file name(.xyz) : "))
+    OutputFile = str(input("[Q]output file name(.LS) : "))
 
     xyz_2_point(diameter, overlap)
     point_cloud_planning()
-    point_2_ls(output_file, waypoints)
+    point_2_ls(OutputFile, waypoints)
 
 
 if __name__ == '__main__':
