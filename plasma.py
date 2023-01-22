@@ -46,6 +46,7 @@ def pointCloudProcess(diameter, overlap):
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
+    # !
     radius = 50
     max_nn = 50
 
@@ -61,10 +62,7 @@ def pointCloudProcess(diameter, overlap):
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
 
-def pointCloudPlanning():
-    global PointArray
-    global NormalArray
-
+def lowWallPlanning():
     PointArray = np.asarray(pcd.points)
     NormalArray = np.asarray(pcd.normals)
     
@@ -264,29 +262,49 @@ def rad2deg(rad):
 
 
 def findMaxZ():
+    PointArray = np.asarray(pcd.points)
 
+    i = 0
+    maxZ = 0
+    while i < (len(PointArray) - 1):
+        if PointArray[i][2] > PointArray[i+1][2]:
+            maxZ = PointArray[i][2]
 
+        i = i + 1
+    
+    return maxZ
 
-def lowType():
-    pointCloudPlanning()
+# !
+def highWallPlanning_Wall():
+    return 0
 
-
-def highType():
+# !
+def highWallPlanning_Bottom_Flat():
+    return 0
 
     
-
 def main():
     global FileName
     global OutputFile
+    breakPoint = 30 # > breakPoint high wall ; < breakPoint low wall
 
     diameter = float(input("[Q]diameter (mm) : "))
     overlap = int(input("[Q]overlap (0~90%) : "))
     FileName = str(input("[Q]file name(.xyz) : "))
-    OutputFile = str(input("[Q]output file name(.LS) : "))
-
+    
     pointCloudProcess(diameter, overlap)
-    pointCloudPlanning()
-    writeLsFile(OutputFile, waypoints)
+    
+    if findMaxZ() > breakPoint:
+        # !
+        OutputFile = str(input("[Q]output file name(Wall.LS) : "))
+        highWallPlanning_Wall()
+        OutputFile = str(input("[Q]output file name(Bottom_flat.LS) : "))
+        highWallPlanning_Bottom_Flat()
+
+    else:
+        OutputFile = str(input("[Q]output file name(.LS) : "))
+        lowWallPlanning()
+        writeLsFile(OutputFile, waypoints)
 
 
 if __name__ == '__main__':
