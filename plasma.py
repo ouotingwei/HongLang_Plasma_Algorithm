@@ -46,7 +46,7 @@ def pointCloudProcess(diameter, overlap):
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
-    # !
+    #modular design not yet
     radius = 50
     max_nn = 50
 
@@ -58,6 +58,7 @@ def pointCloudProcess(diameter, overlap):
         if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
+    #modular design not yet
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
@@ -204,7 +205,12 @@ def lowWallPlanning():
 
         i = i + 1
 
-    global waypoints 
+    movePose(PointArray, NormalArray)
+ 
+
+#modular design not yet
+def movePose(PointArray, NormalArray):
+    global waypoints
     waypoints = []
 
     for i in range(0,len(PointArray)):
@@ -214,7 +220,7 @@ def lowWallPlanning():
         position = np.matmul(PointArray[i], rotation) 
         position = position + transition
         waypoints.append(WayPoints(position[0], position[1], position[2], NormalArray[i][0], NormalArray[i][1], NormalArray[i][2]))
-    
+
 
 def writeLsFile(file, waypoints):
     f = open(file, 'w')
@@ -255,10 +261,6 @@ def writeLsFile(file, waypoints):
 
     f.write("/END\n")
     f.close()
-
-
-def rad2deg(rad):
-    return rad*180/3.1415
 
 
 def findMaxZ():
