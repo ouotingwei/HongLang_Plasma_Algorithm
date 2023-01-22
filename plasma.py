@@ -1,4 +1,4 @@
-# Version : V1
+# Version : V2
 # Deadline : 2023 / 01 / 16
 # Author : TingWei Ou, PoLin Jiang
 # Discription : HongLang Project
@@ -29,7 +29,7 @@ class WayPoints:
         self.C = C  # continuity
 
 
-def xyz_2_point(diameter, overlap):
+def pointCloudProcess(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
 
@@ -61,7 +61,7 @@ def xyz_2_point(diameter, overlap):
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
 
 
-def point_cloud_planning():
+def pointCloudPlanning():
     global PointArray
     global NormalArray
 
@@ -218,7 +218,7 @@ def point_cloud_planning():
         waypoints.append(WayPoints(position[0], position[1], position[2], NormalArray[i][0], NormalArray[i][1], NormalArray[i][2]))
     
 
-def point_2_ls(file, waypoints):
+def writeLsFile(file, waypoints):
     f = open(file, 'w')
     f.write("/PROG  "+OutputFile+"\n")
     f.write("/ATTR\n")
@@ -261,6 +261,18 @@ def point_2_ls(file, waypoints):
 
 def rad2deg(rad):
     return rad*180/3.1415
+
+
+def findMaxZ():
+
+
+
+def lowType():
+    pointCloudPlanning()
+
+
+def highType():
+
     
 
 def main():
@@ -272,9 +284,9 @@ def main():
     FileName = str(input("[Q]file name(.xyz) : "))
     OutputFile = str(input("[Q]output file name(.LS) : "))
 
-    xyz_2_point(diameter, overlap)
-    point_cloud_planning()
-    point_2_ls(OutputFile, waypoints)
+    pointCloudProcess(diameter, overlap)
+    pointCloudPlanning()
+    writeLsFile(OutputFile, waypoints)
 
 
 if __name__ == '__main__':
