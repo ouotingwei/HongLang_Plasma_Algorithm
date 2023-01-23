@@ -261,11 +261,36 @@ def lowWallPlanning():
 
 # !
 def highWallPlanning_Wall():
+
     return 0
 
 # !
 def highWallPlanning_Bottom_Flat():
+    PointArray = np.asarray(pcd.points)
+    NormalArray = np.asarray(pcd.normals)
     
+    
+    
+    i = 0
+    size = 0
+    while i < len(PointArray):
+        if int(PointArray[i][2]) == 0 :
+            size  = size + 1
+        
+        i = i + 1
+    
+    CountingArray = np.zeros(((len(size) + 1, 8)), float)
+    i = 0
+    cnt = 0
+    while i < len(PointArray):
+        if int(PointArray[i][2]) == 0:
+            
+
+        i = i + 1
+
+
+
+
     return 0
 
 
@@ -348,8 +373,12 @@ def main():
         # !
         OutputFile = "WALL.LS"
         highWallPlanning_Wall()
+        writeLsFile(OutputFile, waypoints)
+
         OutputFile = "BOTTOM.LS"
         highWallPlanning_Bottom_Flat()
+        writeLsFile(OutputFile, waypoints)
+        
 
     else:
         OutputFile = "NORMAL.LS"
