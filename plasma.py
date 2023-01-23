@@ -1,5 +1,5 @@
 # Version : V2
-# Deadline : 2023 / 01 / 16
+# Deadline : 2023 / 02 / 10
 # Author : TingWei Ou, PoLin Jiang
 # Discription : HongLang Project
 #!/usr/bin/env python3
@@ -15,6 +15,16 @@ from matplotlib import pyplot as plt
 import open3d as o3d
 import csv
 import math
+import  time
+
+
+global FileName
+global OutputFile
+global waypoints
+global PointArray
+global NormalArray
+waypoints = []
+breakPoint = 30 # > breakPoint high wall ; < breakPoint low wall
 
 
 class WayPoints:
@@ -61,6 +71,40 @@ def pointCloudProcess(diameter, overlap):
     #modular design not yet
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
+
+
+def sampleFromOriginPCD(diameter, overlap):
+    # find the distance between two working path
+    sample_dis = diameter * (1 - (overlap*0.01))
+
+    # read .xyz file
+    global pcd 
+    pcd = o3d.io.read_point_cloud(FileName)
+
+    #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    #print("origin : ",pcd)
+
+    downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
+    #o3d.visualization.draw_geometries([downpcd])
+    print('downsample pointcloud',downpcd)
+    o3d.io.write_point_cloud('result_down.ply', downpcd)
+    pcd = o3d.io.read_point_cloud("result_down.ply")
+
+    #modular design not yet
+    radius = 50
+    max_nn = 50
+
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
+    totol_point = np.asarray(pcd.normals)[:,:].size/3
+    pcd.paint_uniform_color([1, 0.706, 0])
+
+    for i in range(0,int(totol_point)):
+        if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
+            np.asarray(pcd.colors)[i, :] = [0, 0, 1]
+
+    #modular design not yet
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
+    o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
 
 
 def lowWallPlanning():
@@ -204,15 +248,29 @@ def lowWallPlanning():
         NormalArray[i][2] = CountingArray[i][7] = 90
 
         i = i + 1
-
-    movePose(PointArray, NormalArray)
+    
+    # new 
+    for i in range(0,len(PointArray)):
+        theta = 0
+        transition = [500 , -500, -270] 
+        rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
+        position = np.matmul(PointArray[i], rotation) 
+        position = position + transition
+        waypoints.append(WayPoints(position[0], position[1], position[2], NormalArray[i][0], NormalArray[i][1], NormalArray[i][2]))
  
 
-#modular design not yet
-def movePose(PointArray, NormalArray):
-    global waypoints
-    waypoints = []
+# !
+def highWallPlanning_Wall():
+    return 0
 
+# !
+def highWallPlanning_Bottom_Flat():
+    
+    return 0
+
+
+#new
+def movePose():
     for i in range(0,len(PointArray)):
         theta = 60*3.1415/180
         transition = [280 , -400, -270] 
@@ -276,37 +334,31 @@ def findMaxZ():
     
     return maxZ
 
-# !
-def highWallPlanning_Wall():
-    return 0
-
-# !
-def highWallPlanning_Bottom_Flat():
-    return 0
-
     
 def main():
-    global FileName
-    global OutputFile
-    breakPoint = 30 # > breakPoint high wall ; < breakPoint low wall
-
     diameter = float(input("[Q]diameter (mm) : "))
     overlap = int(input("[Q]overlap (0~90%) : "))
     FileName = str(input("[Q]file name(.xyz) : "))
     
     pointCloudProcess(diameter, overlap)
+
+    start = time.time()
     
     if findMaxZ() > breakPoint:
         # !
-        OutputFile = str(input("[Q]output file name(Wall.LS) : "))
+        OutputFile = "WALL.LS"
         highWallPlanning_Wall()
-        OutputFile = str(input("[Q]output file name(Bottom_flat.LS) : "))
+        OutputFile = "BOTTOM.LS"
         highWallPlanning_Bottom_Flat()
 
     else:
-        OutputFile = str(input("[Q]output file name(.LS) : "))
+        OutputFile = "NORMAL.LS"
         lowWallPlanning()
+        movePose()
         writeLsFile(OutputFile, waypoints)
+
+    end = time.time()
+    print("time used :", end - start, "sec")
 
 
 if __name__ == '__main__':
