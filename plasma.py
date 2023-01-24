@@ -62,6 +62,7 @@ def pointCloudProcess(diameter, overlap):
     #modular design not yet
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
+    return 0
 
 
 def backAndForth(Point, Normal):
@@ -213,20 +214,142 @@ def backAndForth(Point, Normal):
         position = np.matmul(Point[i], rotation) 
         position = position + transition
         waypoints.append(WayPoints(position[0], position[1], position[2], Normal[i][0], Normal[i][1], Normal[i][2]))
-
-
-def lowWallPlanning():
-    PointArray = np.asarray(pcd.points)
-    NormalArray = np.asarray(pcd.normals)
     
-    backAndForth(PointArray, NormalArray)
+    return 0
 
+
+def circularArrangement(Point):
+    filter = 2
+
+    n = len(Point)
+    for i in range(n-1):
+        for j in range(n-i-2):
+            if Point[j][2] > Point[j+1][2]:
+                Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
+                Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
+                Point[j][2], Point[j+1][2] = Point[j+1][2], Point[j][2]
+
+    CountingArray = np.zeros(((len(Point)+2 , 5)), float)
+
+    i = 0
+    while i < len(Point) - 1:
+        CountingArray[i][0] = Point[i][0]
+        CountingArray[i][1] = Point[i][1]
+        CountingArray[i][2] = Point[i][2]
+
+        x = Point[i][0]
+        y = Point[i][1]
+
+        CountingArray[i][3] = math.atan2(y, x)*180/3.1415
+        if CountingArray[i][3] > 360:
+            CountingArray[i][3] = CountingArray[i][3] - 360
+
+        i = i + 1
+
+    i = 0
+    while i < len(Point) - 1:
+        high = CountingArray[i][2] + filter
+        low = CountingArray[i][2] - filter
+
+        if CountingArray[i+1][2] > low and CountingArray[i+1][2] < high:
+            CountingArray[i+1][4] = 0
+        else:
+            CountingArray[i+1][4] = 1
+
+        i = i + 1
+    
+    i = 0
+    cnt = 1
+    while i < len(Point):
+        if CountingArray[i+1][4] != 1:
+            cnt = cnt + 1
+
+        else:
+            TempArray = np.zeros(((n, 5)), float)
+
+            n = 0
+            while n < cnt:
+                TempArray[n][0] = CountingArray[i-cnt+n+1][0]
+                TempArray[n][1] = CountingArray[i-cnt+n+1][1]
+                TempArray[n][2] = CountingArray[i-cnt+n+1][2]
+                TempArray[n][3] = CountingArray[i-cnt+n+1][3]
+                n = n + 1           
+
+            for temp in range(n-1):
+                for j in range(n-temp-1):
+                    if TempArray[j][3] > TempArray[j+1][3]:
+                        TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
+                        TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
+                        TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                        TempArray[j][3], TempArray[j+1][3] = TempArray[j+1][3], TempArray[j][3]
+                        
+                    
+            n = 0
+            while n < cnt:
+                CountingArray[i-cnt+n+1][0] = TempArray[n][0]
+                CountingArray[i-cnt+n+1][1] = TempArray[n][1]
+                CountingArray[i-cnt+n+1][2] = TempArray[n][2]
+                CountingArray[i-cnt+n+1][3] = TempArray[n][3]
+                n = n + 1 
+
+            cnt = 1
+
+        i = i + 1
+
+    i = 0
+    while i < len(Point):
+        Point[i][0] = CountingArray[i][0]
+        Point[i][1] = CountingArray[i][1] 
+        Point[i][2] = CountingArray[i][2]
+
+        i = i + 1
+
+    global waypoints
+    waypoints = []
+
+    for i in range(0,len(Point)):
+        theta = 60*3.1415/180
+        transition = [280 , -400, -270] 
+        rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
+        position = np.matmul(Point[i], rotation) 
+        position = position + transition
+        waypoints.append(WayPoints(position[0], position[1], position[2], 90, 0, 90))
+    
+    return 0
+    
 
 # !
 def highWallPlanning_Wall():
+    PointArray = np.asarray(pcd.points)
+
+    i = 0
+    size = 0
+    while i < len(PointArray):
+        if int(PointArray[i][2]) > 10: #gate = 10
+            size = size + 1
+        
+        i = i + 1
+    
+    Point_filter = np.zeros(((size + 1, 3)), float)
+
+    i = 0
+    cnt = 0
+    while i < len(PointArray):
+        if int(PointArray[i][2]) > 10:
+            Point_filter[cnt][0] = PointArray[i][0]
+            Point_filter[cnt][1] = PointArray[i][1]
+            Point_filter[cnt][2] = PointArray[i][2]
+
+
+            cnt = cnt + 1
+            
+        i = i + 1
+    
+    circularArrangement(Point_filter)
     return 0
 
-# !
+
+# test not yet
 def highWallPlanning_Bottom_Flat():
     PointArray = np.asarray(pcd.points)
     NormalArray = np.asarray(pcd.normals)
@@ -234,7 +357,7 @@ def highWallPlanning_Bottom_Flat():
     i = 0
     size = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) < 10 :
+        if int(PointArray[i][2]) < 10 : # gate = 10
             size  = size + 1
         
         i = i + 1
@@ -254,12 +377,17 @@ def highWallPlanning_Bottom_Flat():
             Normal_filter[cnt][2] = NormalArray[i][2]
 
             cnt = cnt + 1
-            
 
         i = i + 1
 
     backAndForth(Point_filter, Normal_filter)
+    return 0
 
+
+def lowWallPlanning():
+    PointArray = np.asarray(pcd.points)
+    NormalArray = np.asarray(pcd.normals)
+    backAndForth(PointArray, NormalArray)
     return 0
 
 
@@ -302,6 +430,7 @@ def writeLsFile(file, waypoints):
 
     f.write("/END\n")
     f.close()
+    return 0
 
 
 def findMaxZ():
@@ -333,9 +462,9 @@ def main():
     
     if findMaxZ() > breakPoint:
         # !
-        #OutputFile = "WALL.LS"
-        #highWallPlanning_Wall()
-        #writeLsFile(OutputFile, waypoints)
+        OutputFile = "WALL.LS"
+        highWallPlanning_Wall()
+        writeLsFile(OutputFile, waypoints)
 
         OutputFile = "BOTTOM.LS"
         highWallPlanning_Bottom_Flat()
