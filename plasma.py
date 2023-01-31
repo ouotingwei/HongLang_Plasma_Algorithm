@@ -31,6 +31,7 @@ class WayPoints:
         self.C = C  # continuity
 
 
+#'''
 def pointCloudProcess(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
@@ -43,6 +44,39 @@ def pointCloudProcess(diameter, overlap):
     #print("origin : ",pcd)
 
     downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
+    #o3d.visualization.draw_geometries([downpcd])
+    print('downsample pointcloud',downpcd)
+    o3d.io.write_point_cloud('result_down.ply', downpcd)
+    pcd = o3d.io.read_point_cloud("result_down.ply")
+
+    #modular design not yet
+    radius = 50
+    max_nn = 50
+
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
+    totol_point = np.asarray(pcd.normals)[:,:].size/3
+    pcd.paint_uniform_color([1, 0.706, 0])
+
+    for i in range(0,int(totol_point)):
+        if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
+            np.asarray(pcd.colors)[i, :] = [0, 0, 1]
+
+    #modular design not yet
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
+    o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
+    return 0
+#'''
+
+
+def pointCloudSample(diameter, overlap):
+    # read .xyz file
+    global pcd 
+    pcd = o3d.io.read_point_cloud(FileName)
+
+    o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    print("origin : ",pcd)
+
+    downpcd = pcd.voxel_down_sample(voxel_size=5)
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -457,7 +491,8 @@ def main():
     overlap = int(input("[Q]overlap (0~90%) : "))
     FileName = str(input("[Q]file name(.xyz) : "))
     
-    pointCloudProcess(diameter, overlap)
+    #pointCloudProcess(diameter, overlap)
+    pointCloudSample(diameter, overlap)
 
     start = time.time()
     
