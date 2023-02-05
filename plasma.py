@@ -31,7 +31,7 @@ class WayPoints:
         self.C = C  # continuity
 
 
-#'''
+
 def pointCloudProcess(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
@@ -65,12 +65,12 @@ def pointCloudProcess(diameter, overlap):
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
     return 0
-#'''
 
 
-def pointCloudSample(diameter, overlap):
+def pointCloudSample():
     # read .xyz file
-    global pcd 
+    global pcd
+    global pcdSample
     pcd = o3d.io.read_point_cloud(FileName)
 
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
@@ -96,7 +96,13 @@ def pointCloudSample(diameter, overlap):
 
     #modular design not yet
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
-    o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
+    o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
+
+    #sample
+    print("")
+    
+
+
     return 0
 
 
@@ -354,13 +360,13 @@ def circularArrangement(Point):
     
 
 # !
-def highWallPlanning_Wall():
+def Wall(gate):
     PointArray = np.asarray(pcd.points)
 
     i = 0
     size = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) > 10: #gate = 10
+        if int(PointArray[i][2]) > gate: #gate = 10
             size = size + 1
         
         i = i + 1
@@ -370,7 +376,7 @@ def highWallPlanning_Wall():
     i = 0
     cnt = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) > 10:
+        if int(PointArray[i][2]) > gate:
             Point_filter[cnt][0] = PointArray[i][0]
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
@@ -385,14 +391,15 @@ def highWallPlanning_Wall():
 
 
 # test not yet
-def highWallPlanning_Bottom_Flat():
+def BottomFlat(gate):
     PointArray = np.asarray(pcd.points)
     NormalArray = np.asarray(pcd.normals)
+    
     
     i = 0
     size = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) < 10 : # gate = 10
+        if int(PointArray[i][2]) < gate : # gate = 5
             size  = size + 1
         
         i = i + 1
@@ -403,7 +410,7 @@ def highWallPlanning_Bottom_Flat():
     i = 0
     cnt = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) < 10:
+        if int(PointArray[i][2]) < gate:
             Point_filter[cnt][0] = PointArray[i][0]
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
@@ -416,13 +423,6 @@ def highWallPlanning_Bottom_Flat():
         i = i + 1
 
     backAndForth(Point_filter, Normal_filter)
-    return 0
-
-
-def lowWallPlanning():
-    PointArray = np.asarray(pcd.points)
-    NormalArray = np.asarray(pcd.normals)
-    backAndForth(PointArray, NormalArray)
     return 0
 
 
@@ -467,50 +467,32 @@ def writeLsFile(file, waypoints):
     f.close()
     return 0
 
-
-def findMaxZ():
-    PointArray = np.asarray(pcd.points)
-
-    i = 0
-    maxZ = 0
-    while i < (len(PointArray) - 1):
-        if PointArray[i][2] > PointArray[i+1][2]:
-            maxZ = PointArray[i][2]
-
-        i = i + 1
-    
-    return maxZ
-
     
 def main():
     global FileName
     global OutputFile
-    breakPoint = 30 # > breakPoint high wall ; < breakPoint low wall
+    gate = 5
 
-    diameter = float(input("[Q]diameter (mm) : "))
-    overlap = int(input("[Q]overlap (0~90%) : "))
-    FileName = str(input("[Q]file name(.xyz) : "))
+    #diameter = float(input("[Q]diameter (mm) : "))
+    diameter = 40
+    #overlap = int(input("[Q]overlap (0~90%) : "))
+    overlap = 40
+    #FileName = str(input("[Q]file name(.xyz) : "))
+    FileName = "001_rand.xyz"
     
-    #pointCloudProcess(diameter, overlap)
-    pointCloudSample(diameter, overlap)
+    pointCloudProcess(diameter, overlap)
+    #pointCloudSample(diameter, overlap)
 
     start = time.time()
     
-    if findMaxZ() > breakPoint:
-        # !
-        OutputFile = "WALL.LS"
-        highWallPlanning_Wall()
-        writeLsFile(OutputFile, waypoints)
+    # !
+    OutputFile = "WALL.LS"
+    Wall(gate)
+    writeLsFile(OutputFile, waypoints)
 
-        OutputFile = "BOTTOM.LS"
-        highWallPlanning_Bottom_Flat()
-        writeLsFile(OutputFile, waypoints)
-        
-
-    else:
-        OutputFile = "LOWWALL.LS"
-        lowWallPlanning()
-        writeLsFile(OutputFile, waypoints)
+    OutputFile = "BOTTOM.LS"
+    BottomFlat(gate)
+    writeLsFile(OutputFile, waypoints)
 
     end = time.time()
     print("time used :", end - start, "sec")
