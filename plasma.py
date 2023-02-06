@@ -76,7 +76,7 @@ def pointCloudSample():
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=5)
+    downpcd = pcd.voxel_down_sample(voxel_size=10)
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -99,7 +99,21 @@ def pointCloudSample():
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
 
     #sample
-    print("")
+    points = np.asarray(pcd.points)
+    normals = np.asarray(pcd.normals)
+    pcdSample = np.zeros((len(points), 6), float) # [x][y][z][a][b][c]
+
+    i = 0
+    while i < len(pcdSample):
+        pcdSample[i][0] = points[i][0]
+        pcdSample[i][1] = points[i][1]
+        pcdSample[i][2] = points[i][2]
+        pcdSample[i][3] = normals[i][0]
+        pcdSample[i][4] = normals[i][1]
+        pcdSample[i][5] = normals[i][2]
+        i = i + 1
+
+    print(pcdSample)
     
 
 
@@ -478,7 +492,11 @@ def main():
     #overlap = int(input("[Q]overlap (0~90%) : "))
     overlap = 40
     #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "001_rand.xyz"
+    FileName = "002_rand.xyz"
+
+    print("diameter = ", diameter)
+    print("overlap = ", overlap)
+    print("FileName = ", FileName)
     
     pointCloudProcess(diameter, overlap)
     #pointCloudSample(diameter, overlap)
@@ -497,6 +515,20 @@ def main():
     end = time.time()
     print("time used :", end - start, "sec")
 
+def test():
+    global FileName
+    global OutputFile
+    gate = 5
+
+    #diameter = float(input("[Q]diameter (mm) : "))
+    diameter = 40
+    #overlap = int(input("[Q]overlap (0~90%) : "))
+    overlap = 40
+    #FileName = str(input("[Q]file name(.xyz) : "))
+    FileName = "002_rand.xyz"
+    pointCloudSample()
+
 
 if __name__ == '__main__':
-    main()
+    #main()
+    test()
