@@ -77,7 +77,7 @@ def pointCloudSample():
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=10)
+    downpcd = pcd.voxel_down_sample(voxel_size=1)
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -593,5 +593,20 @@ def main():
     print("time used :", end - start, "sec")
 
 
+def test():
+    global FileName
+    global OutputFile
+    gate = 5
+
+    #diameter = float(input("[Q]diameter (mm) : "))
+    diameter = 40
+    #overlap = int(input("[Q]overlap (0~90%) : "))
+    overlap = 40
+    #FileName = str(input("[Q]file name(.xyz) : "))
+    FileName = "002_rand.xyz"
+    pointCloudSample()
+
+
 if __name__ == '__main__':
-    main()
+    #main()
+    test()
