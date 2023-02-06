@@ -121,7 +121,7 @@ def pointCloudSample():
 
 
 def backAndForth(Point, Normal):
-    #ARRANGE IN ORDER X
+   #ARRANGE IN ORDER X
     n = len(Point)
     for i in range(n-1):
         for j in range(n-i-1):
@@ -129,15 +129,12 @@ def backAndForth(Point, Normal):
                 Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
                 Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
                 Point[j][2], Point[j+1][2] = Point[j+1][2], Point[j][2]
-                Normal[j][0], Normal[j+1][0] = Normal[j+1][0], Normal[j][0]
-                Normal[j][1], Normal[j+1][1] = Normal[j+1][1], Normal[j][1]
-                Normal[j][2], Normal[j+1][2] = Normal[j+1][2], Normal[j][2]
     
     #print(point_arr)
     #print("")
 
     #INITALIZATION
-    CountingArray = np.zeros(((len(Point) + 1, 8)), float)
+    CountingArray = np.zeros(((len(Point) + 1, 5)), float)
     i = 0
     flag = 0
     time = 1
@@ -145,10 +142,6 @@ def backAndForth(Point, Normal):
     CountingArray[len(Point)-1][0] = Point[len(Point)-1][0]
     CountingArray[len(Point)-1][1] = Point[len(Point)-1][1]
     CountingArray[len(Point)-1][2] = Point[len(Point)-1][2]
-
-    CountingArray[len(Point)-1][5] = Normal[len(Point)-1][0]
-    CountingArray[len(Point)-1][6] = Normal[len(Point)-1][1]
-    CountingArray[len(Point)-1][7] = Normal[len(Point)-1][2]
 
     CountingArray[len(Point)][3] = 1
     CountingArray[len(Point)][4] = 4
@@ -158,9 +151,6 @@ def backAndForth(Point, Normal):
         CountingArray[i][0] = Point[i][0]
         CountingArray[i][1] = Point[i][1]
         CountingArray[i][2] = Point[i][2]
-        CountingArray[i][5] = Normal[i][0]
-        CountingArray[i][6] = Normal[i][1]
-        CountingArray[i][7] = Normal[i][2]
         
         if round(Point[i+1][0]) != round(Point[i][0]) :
             flag = flag + 1
@@ -182,15 +172,12 @@ def backAndForth(Point, Normal):
 
             if (int(CountingArray[i][4]) % 2) == 0:
                 cnt = 0
-                TempArray = np.zeros(((n, 8)), float)
+                TempArray = np.zeros(((n, 5)), float)
 
                 while cnt < n:
                     TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
                     TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
                     TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
-                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
-                    TempArray[cnt][6] = CountingArray[i-n+cnt+1][6]
-                    TempArray[cnt][7] = CountingArray[i-n+cnt+1][7]
                     cnt = cnt + 1           
 
                 for temp in range(n-1):
@@ -198,32 +185,23 @@ def backAndForth(Point, Normal):
                         if TempArray[j][1] > TempArray[j+1][1]:
                             TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
                             TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
-                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
-                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]
-                            TempArray[j][6], TempArray[j+1][6] = TempArray[j+1][6], TempArray[j][6]
-                            TempArray[j][7], TempArray[j+1][7] = TempArray[j+1][7], TempArray[j][7]     
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]     
                         
                 cnt = 0
                 while cnt < n:
                     CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
                     CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
                     CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
-                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
-                    CountingArray[i-n+cnt+1][6] = TempArray[cnt][6]
-                    CountingArray[i-n+cnt+1][7] = TempArray[cnt][7]
                     cnt = cnt + 1
 
             elif (int(CountingArray[i][4]) % 2) == 1:
                 cnt = 0
-                TempArray = np.zeros(((n, 8)), float)
+                TempArray = np.zeros(((n, 5)), float)
 
                 while cnt < n:
                     TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
                     TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
                     TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
-                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
-                    TempArray[cnt][6] = CountingArray[i-n+cnt+1][6]
-                    TempArray[cnt][7] = CountingArray[i-n+cnt+1][7]
                     cnt = cnt + 1  
 
                 for temp in range(n-1):
@@ -232,18 +210,12 @@ def backAndForth(Point, Normal):
                             TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
                             TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
                             TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
-                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]
-                            TempArray[j][6], TempArray[j+1][6] = TempArray[j+1][6], TempArray[j][6]
-                            TempArray[j][7], TempArray[j+1][7] = TempArray[j+1][7], TempArray[j][7]
                         
                 cnt = 0
                 while cnt < n:
                     CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
                     CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
                     CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
-                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
-                    CountingArray[i-n+cnt+1][6] = TempArray[cnt][6]
-                    CountingArray[i-n+cnt+1][7] = TempArray[cnt][7]
                     cnt = cnt + 1
  
         i = i + 1
@@ -253,24 +225,11 @@ def backAndForth(Point, Normal):
         Point[i][0] = CountingArray[i][0]
         Point[i][1] = CountingArray[i][1] 
         Point[i][2] = CountingArray[i][2]
-        Normal[i][0] = CountingArray[i][5] = 90
-        Normal[i][1] = CountingArray[i][6] = 0
-        Normal[i][2] = CountingArray[i][7] = 90
 
         i = i + 1
 
-    global waypoints
-    waypoints = []
-
-    for i in range(0,len(Point)):
-        theta = 60*3.1415/180
-        transition = [280 , -400, -270] 
-        rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
-        position = np.matmul(Point[i], rotation) 
-        position = position + transition
-        waypoints.append(WayPoints(position[0], position[1], position[2], Normal[i][0], Normal[i][1], Normal[i][2]))
-    
-    return 0
+    # output ordered waypoints
+    workingSpaceTF(Point, np.zeros(((len(Point), 3)), float))
 
 
 def circularArrangement(Point):
@@ -351,26 +310,13 @@ def circularArrangement(Point):
 
         i = i + 1
 
-    i = 0
-    while i < len(Point):
-        Point[i][0] = CountingArray[i][0]
-        Point[i][1] = CountingArray[i][1] 
-        Point[i][2] = CountingArray[i][2]
+    # normal proccessing
+    # let end-effector keep 10mm from the wall
+    Point, Parall = wallNormalProccessing(10, CountingArray)
 
-        i = i + 1
-
-    global waypoints
-    waypoints = []
-
-    for i in range(0,len(Point)):
-        theta = 60*3.1415/180
-        transition = [280 , -400, -270] 
-        rotation = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float)
-        position = np.matmul(Point[i], rotation) 
-        position = position + transition
-        waypoints.append(WayPoints(position[0], position[1], position[2], 90, 0, 90))
+    # output ordered waypoints
+    workingSpaceTF(Point, Parall)
     
-    return 0
     
 
 # !
@@ -440,6 +386,118 @@ def BottomFlat(gate):
     return 0
 
 
+def wallNormalProccessing(d, CountingArray):
+    Point = np.zeros(((len(CountingArray)-3, 3)), float)
+    Parall = np.zeros(((len(CountingArray)-3, 3)), float)
+
+    # initialize Point
+    i = 0
+    while i < len(Point):
+        Point[i][0] = CountingArray[i][0]
+        Point[i][1] = CountingArray[i][1] 
+        Point[i][2] = CountingArray[i][2] 
+
+        i = i + 1
+
+    # find the slope of wall
+    slope = 0
+    cnt = 1
+    for i in range(len(Point)):
+        Closest_Point = np.array([100, 100, 100], float)
+        for j in range(len(Point)):
+            if((Point[j][2] > Point[i][2] + 5 or Point[j][2] < Point[i][2] - 5) and (getDistance(Point[j], Point[i]) < getDistance(Closest_Point, Point[i]))):
+                    Closest_Point = Point[j]
+        
+        delta_x = abs(Closest_Point[0] - Point[i][0])
+        delta_y = abs(Closest_Point[1] - Point[i][1])
+        delta_z = abs(Closest_Point[2] - Point[i][2])
+        new_slope = math.atan2(delta_z**2, (delta_x**2 + delta_y**2)**0.5) ##\\*180/3.1415
+
+        if(i==0): slope += new_slope
+        if(i>0 and new_slope>(slope/cnt-5) and new_slope<(slope/cnt+5)):
+            slope += new_slope
+            cnt  += 1
+    
+    slope /= cnt
+
+    
+    # let end_effector keep a distance d and be parallel to the wall
+    max_x, max_y = findMaxXY()
+    corner = math.atan2(max_y, max_x)*180/3.1415
+
+    for i in range(len(Point)-1):
+        if(CountingArray[i][3] <= corner and CountingArray[i][3] > -corner ):
+            Point[i][0] = Point[i][0] - d*math.sin(slope)
+            Point[i][1] = Point[i][1] - d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180) 
+            Point[i][2] = Point[i][2] + d*math.cos(slope)
+            Parall[i][0] = math.cos(slope)
+            Parall[i][1] = 0.000
+            Parall[i][2] = math.sin(slope)
+
+        if(CountingArray[i][3] <= (180 - corner) and CountingArray[i][3] > corner ):
+            Point[i][0] = Point[i][0] - d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
+            Point[i][1] = Point[i][1] - d*math.sin(slope)
+            Point[i][2] = Point[i][2] + d*math.cos(slope)
+            Parall[i][0] = 0.000
+            Parall[i][1] = math.cos(slope)
+            Parall[i][2] = math.sin(slope)
+
+        if(CountingArray[i][3] <= 180 and CountingArray[i][3] > (180 - corner) or  CountingArray[i][3] < (-180 + corner)  and CountingArray[i][3] >= -180):
+            Point[i][0] = Point[i][0] + d*math.sin(slope)
+            Point[i][1] = Point[i][1] + d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180)
+            Point[i][2] = Point[i][2] + d*math.cos(slope)
+            Parall[i][0] = -math.cos(slope)
+            Parall[i][1] = 0.000
+            Parall[i][2] = math.sin(slope)
+
+        if(CountingArray[i][3] <= -corner and CountingArray[i][3] >= (-180 + corner)):
+            Point[i][0] = Point[i][0] + d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
+            Point[i][1] = Point[i][1] + d*math.sin(slope)
+            Point[i][2] = Point[i][2] + d*math.cos(slope)
+            Parall[i][0] = 0.000
+            Parall[i][1] = -math.cos(slope)
+            Parall[i][2] = math.sin(slope) 
+
+    return Point, Parall
+    
+
+def workingSpaceTF(Position,Vector):
+
+    n = len(Position)
+    if(n!=len(Vector)):
+        print("length error")
+        exit() 
+
+    global waypoints
+    waypoints = []
+
+    for i in range(0, n): 
+        # transform points to workspace
+        transition_p = [240 , -370, -270]
+        theta = 60*(3.1415/180)
+        rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
+        Position_tf = np.matmul(Position[i], rotation_matrix) ## rotation
+        Position_tf = Position_tf + transition_p ## transition
+
+        # transform vector to workspace 
+        transition_v = [90, 0, 90]
+        Vector_tf = np.matmul(Vector[i], rotation_matrix) ## rotation
+        phi = math.degrees(math.atan2(Vector_tf[1],Vector_tf[2]))  
+        theta = math.degrees(math.atan2(Vector_tf[0],Vector_tf[2]))
+        psi = 0.000
+
+        if phi < -0.000 and phi > -0.0001: phi = 0.000 ## prevent the value of -0.000...
+        if theta < -0.000 and theta > -0.0001: theta = 0.000
+        
+        Vector_tf = np.array([phi, theta, psi]) # transform euler vector to engle representation
+        Vector_tf = Vector_tf + transition_v ## transition
+        
+        # output watpoints
+        waypoints.append(WayPoints(Position_tf[0], Position_tf[1], Position_tf[2], Vector_tf[0], Vector_tf[1], Vector_tf[2]))
+    
+    return 0
+
+
 def writeLsFile(file, waypoints):
     f = open(file, 'w')
     f.write("/PROG  "+OutputFile+"\n")
@@ -481,6 +539,26 @@ def writeLsFile(file, waypoints):
     f.close()
     return 0
 
+
+
+def getDistance(vector_1,vector_2):
+    return ((vector_1[0] - vector_2[0])**2 + (vector_1[1] - vector_2[1])**2 + (vector_1[2] - vector_2[2])**2)**0.5
+
+
+def findMaxXY():
+    PointArray = np.asarray(pcd.points)
+
+    maxX = 0
+    maxY = 0
+    
+    for i in range(len(PointArray) - 1):
+        if PointArray[i][0] > maxX:
+            maxX = PointArray[i][0]
+        if PointArray[i][1] > maxY:
+            maxY = PointArray[i][1]
+    
+    return maxX, maxY
+
     
 def main():
     global FileName
@@ -488,9 +566,9 @@ def main():
     gate = 5
 
     #diameter = float(input("[Q]diameter (mm) : "))
-    diameter = 40
+    diameter = 7
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 40
+    overlap = 0
     #FileName = str(input("[Q]file name(.xyz) : "))
     FileName = "002_rand.xyz"
 
@@ -504,11 +582,11 @@ def main():
     start = time.time()
     
     # !
-    OutputFile = "WALL.LS"
+    OutputFile = "WALL01.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
-    OutputFile = "BOTTOM.LS"
+    OutputFile = "BOTTOM01.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
