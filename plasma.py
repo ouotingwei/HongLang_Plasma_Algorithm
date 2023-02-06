@@ -64,6 +64,7 @@ def pointCloudProcess(diameter, overlap):
     #modular design not yet
     o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
+    
     return 0
 
 
@@ -101,21 +102,18 @@ def pointCloudSample():
     #sample
     points = np.asarray(pcd.points)
     normals = np.asarray(pcd.normals)
-    pcdSample = np.zeros((len(points), 6), float) # [x][y][z][a][b][c]
+    pcdSample_bottom = np.zeros((len(points), 6), float) # [x][y][z][a][b][c]
 
+    #bottom
     i = 0
-    while i < len(pcdSample):
-        pcdSample[i][0] = points[i][0]
-        pcdSample[i][1] = points[i][1]
-        pcdSample[i][2] = points[i][2]
-        pcdSample[i][3] = normals[i][0]
-        pcdSample[i][4] = normals[i][1]
-        pcdSample[i][5] = normals[i][2]
+    while i < len(pcdSample_bottom):
+        pcdSample_bottom[i][0] = points[i][0]
+        pcdSample_bottom[i][1] = points[i][1]
+        pcdSample_bottom[i][2] = points[i][2]
+        pcdSample_bottom[i][3] = normals[i][0]
+        pcdSample_bottom[i][4] = normals[i][1]
+        pcdSample_bottom[i][5] = normals[i][2]
         i = i + 1
-
-    print(pcdSample)
-    
-
 
     return 0
 
@@ -275,6 +273,8 @@ def circularArrangement(Point):
     i = 0
     cnt = 1
     while i < len(Point):
+        n = len(Point)
+
         if CountingArray[i+1][4] != 1:
             cnt = cnt + 1
 
@@ -283,7 +283,7 @@ def circularArrangement(Point):
 
             n = 0
             while n < cnt:
-                TempArray[n][0] = CountingArray[i-cnt+n+1][0]
+                TempArray[n][0] = CountingArray[i-cnt+n+1][0]    #
                 TempArray[n][1] = CountingArray[i-cnt+n+1][1]
                 TempArray[n][2] = CountingArray[i-cnt+n+1][2]
                 TempArray[n][3] = CountingArray[i-cnt+n+1][3]
@@ -318,7 +318,6 @@ def circularArrangement(Point):
     workingSpaceTF(Point, Parall)
     
     
-
 # !
 def Wall(gate):
     PointArray = np.asarray(pcd.points)
@@ -566,9 +565,9 @@ def main():
     gate = 5
 
     #diameter = float(input("[Q]diameter (mm) : "))
-    diameter = 7
+    diameter = 50
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 0
+    overlap = 50
     #FileName = str(input("[Q]file name(.xyz) : "))
     FileName = "002_rand.xyz"
 
@@ -593,20 +592,6 @@ def main():
     end = time.time()
     print("time used :", end - start, "sec")
 
-def test():
-    global FileName
-    global OutputFile
-    gate = 5
-
-    #diameter = float(input("[Q]diameter (mm) : "))
-    diameter = 40
-    #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 40
-    #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "002_rand.xyz"
-    pointCloudSample()
-
 
 if __name__ == '__main__':
-    #main()
-    test()
+    main()
