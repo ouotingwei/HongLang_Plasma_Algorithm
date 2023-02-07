@@ -109,6 +109,7 @@ def pointCloudSample(diameter, overlap, z):
 
     #bottom
     botCnt = 0
+    wallCnt = 0
     i = 0
     while i < len(pcdSample_pre):
         pcdSample_pre[i][0] = points[i][0]
@@ -121,6 +122,8 @@ def pointCloudSample(diameter, overlap, z):
         if int(pcdSample_pre[i][2]) < 3: # depend on r
             pcdSample_pre[i][6] = 1
             botCnt = botCnt + 1
+        else:
+            wallCnt = wallCnt + 1
         
         i = i + 1
 
@@ -128,10 +131,17 @@ def pointCloudSample(diameter, overlap, z):
     
     x = max_x - min_x
     y = max_y - min_y
+    
     eqp_x = x / sample_dis
     eqp_y = y / sample_dis
     
+    print(x)
+    print(y)
+    print(eqp_x)
+    print(eqp_y)
+    
     i = 0
+    
     
     
     
@@ -170,7 +180,7 @@ def fingMaximumBondary(pcdSample_pre, diameter):
             max_z = pcdSample_pre[i][2]
         
         i = i + 1
-        
+    
     max_x = max_x - (diameter / 2)
     min_x = min_x + (diameter / 2)
     max_y = max_y - (diameter / 2)
@@ -660,9 +670,9 @@ def test():
     gate = 5
 
     #diameter = float(input("[Q]diameter (mm) : "))
-    diameter = 40
+    diameter = 50
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 20
+    overlap = 30
     #FileName = str(input("[Q]file name(.xyz) : "))
     FileName = "002_rand.xyz"
     z = 5
