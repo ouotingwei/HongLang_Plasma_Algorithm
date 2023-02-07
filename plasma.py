@@ -67,10 +67,7 @@ def pointCloudProcess(diameter, overlap):
     return 0
 
 
-def pointCloudSample(diameter, overlap, z):
-    # find the distance between two working path
-    sample_dis = diameter * (1 - (overlap*0.01))
-    
+def pointCloudSample(diameter):
     # read .xyz file
     global pcd
     global pcdSample
@@ -79,7 +76,7 @@ def pointCloudSample(diameter, overlap, z):
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=1) 
+    downpcd = pcd.voxel_down_sample(voxel_size=5) 
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -106,10 +103,7 @@ def pointCloudSample(diameter, overlap, z):
     normals = np.asarray(pcd.normals)
     pcdSample_pre = np.zeros((len(points), 7), float) # [x][y][z][a][b][c][ = 1 -> base , = 0 -> wall ]
 
-
-    #bottom
-    botCnt = 0
-    wallCnt = 0
+    #sample
     i = 0
     while i < len(pcdSample_pre):
         pcdSample_pre[i][0] = points[i][0]
@@ -119,35 +113,62 @@ def pointCloudSample(diameter, overlap, z):
         pcdSample_pre[i][4] = normals[i][1]
         pcdSample_pre[i][5] = normals[i][2]
         
-        if int(pcdSample_pre[i][2]) < 3: # depend on r
-            pcdSample_pre[i][6] = 1
-            botCnt = botCnt + 1
-        else:
-            wallCnt = wallCnt + 1
         
         i = i + 1
 
     fingMaximumBondary(pcdSample_pre, diameter)
     
+    radius = 3
+    
     x = max_x - min_x
     y = max_y - min_y
+    z = max_z
     
-    eqp_x = x / sample_dis
-    eqp_y = y / sample_dis
+    times_x = 2
+    times_y = 8
+    times_z = 3
     
-    print(x)
-    print(y)
-    print(eqp_x)
-    print(eqp_y)
+    sample_x = x / times_x
+    sample_y = y / times_y
+    sample_z = z / times_z
+    
+    #flag pcdSsample[i][6] -> 0 & sample x & y
+    i = 0
+    filterCNT = 0
+    while i < len(pcdSample_pre):
+        pcdSample_pre[i][6] = 0
+    
+        
+        if int(pcdSample_pre[i][0] / sample_x) == 0 and int(pcdSample_pre[i][1] / sample_y) == 0 and pcdSample_pre[i][2] < radius:
+            pcdSample_pre[i][6] = 1
+            filterCNT = filterCNT + 1
+        
+
+        if int(pcdSample_pre[i][2] / sample_z) == 0 and pcdSample_pre[i][2] > radius:
+            pcdSample_pre[i][6] = 1
+            filterCNT = filterCNT + 1
+
+        i = i + 1
+        
+    pcdSample = np.zeros((filterCNT, 6), float)
+
     
     i = 0
-    
-    
-    
-    
-    
-    
-    
+    pcdCNT = 0
+    while i < len(pcdSample_pre):
+        if pcdSample_pre[i][6] == 1:
+            pcdSample[pcdCNT][0] = pcdSample_pre[i][0]
+            pcdSample[pcdCNT][1] = pcdSample_pre[i][1]
+            pcdSample[pcdCNT][2] = pcdSample_pre[i][2]
+            pcdSample[pcdCNT][3] = pcdSample_pre[i][3]
+            pcdSample[pcdCNT][4] = pcdSample_pre[i][4]
+            pcdSample[pcdCNT][5] = pcdSample_pre[i][5]
+            
+            pcdCNT = pcdCNT + 1
+        
+        i = i + 1
+        
+
     return 0
 
 def fingMaximumBondary(pcdSample_pre, diameter):
@@ -391,7 +412,8 @@ def circularArrangement(Point):
     
 # !
 def Wall(gate):
-    PointArray = np.asarray(pcd.points)
+    #PointArray = np.asarray(pcd.points)
+    PointArray = pcdSample
 
     i = 0
     size = 0
@@ -422,8 +444,21 @@ def Wall(gate):
 
 # test not yet
 def BottomFlat(gate):
-    PointArray = np.asarray(pcd.points)
-    NormalArray = np.asarray(pcd.normals)
+    #PointArray = np.asarray(pcd.points)
+    #NormalArray = np.asarray(pcd.normals)
+    PointArray = np.zeros(((len(pcdSample), 3)), float)
+    NormalArray = np.zeros(((len(pcdSample), 3)), float)
+    
+    i = 0
+    while i < len(pcdSample):
+        PointArray[i][0] = pcdSample[i][0]
+        PointArray[i][1] = pcdSample[i][1]
+        PointArray[i][2] = pcdSample[i][2]
+        NormalArray[i][0] = pcdSample[i][3]
+        NormalArray[i][1] = pcdSample[i][4]
+        NormalArray[i][2] = pcdSample[i][5]
+        
+        i = i + 1
     
     
     i = 0
@@ -638,16 +673,16 @@ def main():
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 50
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 50
+    overlap = 0
     #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "001_rand.xyz"
+    FileName = "002_rand.xyz"
 
     print("diameter = ", diameter)
     print("overlap = ", overlap)
     print("FileName = ", FileName)
     
-    pointCloudProcess(diameter, overlap)
-    #pointCloudSample(diameter, overlap)
+    #pointCloudProcess(diameter, overlap)
+    pointCloudSample(diameter)
 
     start = time.time()
     
@@ -672,13 +707,13 @@ def test():
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 50
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 30
+    overlap = 0
     #FileName = str(input("[Q]file name(.xyz) : "))
     FileName = "002_rand.xyz"
-    z = 5
-    pointCloudSample(diameter, overlap, z)
+
+    pointCloudSample(diameter)
 
 
 if __name__ == '__main__':
-    #main()
-    test()
+    main()
+    #test()
