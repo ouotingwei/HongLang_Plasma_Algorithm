@@ -31,7 +31,6 @@ class WayPoints:
         self.C = C  # continuity
 
 
-
 def pointCloudProcess(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
@@ -68,7 +67,10 @@ def pointCloudProcess(diameter, overlap):
     return 0
 
 
-def pointCloudSample():
+def pointCloudSample(diameter, overlap, z):
+    # find the distance between two working path
+    sample_dis = diameter * (1 - (overlap*0.01))
+    
     # read .xyz file
     global pcd
     global pcdSample
@@ -77,7 +79,7 @@ def pointCloudSample():
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=1)
+    downpcd = pcd.voxel_down_sample(voxel_size=1) 
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -102,21 +104,80 @@ def pointCloudSample():
     #sample
     points = np.asarray(pcd.points)
     normals = np.asarray(pcd.normals)
-    pcdSample_bottom = np.zeros((len(points), 6), float) # [x][y][z][a][b][c]
+    pcdSample_pre = np.zeros((len(points), 7), float) # [x][y][z][a][b][c][ = 1 -> base , = 0 -> wall ]
+
 
     #bottom
+    botCnt = 0
     i = 0
-    while i < len(pcdSample_bottom):
-        pcdSample_bottom[i][0] = points[i][0]
-        pcdSample_bottom[i][1] = points[i][1]
-        pcdSample_bottom[i][2] = points[i][2]
-        pcdSample_bottom[i][3] = normals[i][0]
-        pcdSample_bottom[i][4] = normals[i][1]
-        pcdSample_bottom[i][5] = normals[i][2]
+    while i < len(pcdSample_pre):
+        pcdSample_pre[i][0] = points[i][0]
+        pcdSample_pre[i][1] = points[i][1]
+        pcdSample_pre[i][2] = points[i][2]
+        pcdSample_pre[i][3] = normals[i][0]
+        pcdSample_pre[i][4] = normals[i][1]
+        pcdSample_pre[i][5] = normals[i][2]
+        
+        if int(pcdSample_pre[i][2]) < 3: # depend on r
+            pcdSample_pre[i][6] = 1
+            botCnt = botCnt + 1
+        
         i = i + 1
 
+    fingMaximumBondary(pcdSample_pre, diameter)
+    
+    x = max_x - min_x
+    y = max_y - min_y
+    eqp_x = x / sample_dis
+    eqp_y = y / sample_dis
+    
+    i = 0
+    
+    
+    
+    
+    
+    
     return 0
 
+def fingMaximumBondary(pcdSample_pre, diameter):
+    global max_x
+    global min_x 
+    global max_y
+    global min_y
+    global max_z
+    
+    max_x = 0
+    min_x = 0
+    max_y = 0
+    min_y = 0
+    max_z = 0
+    i = 0
+    while i < len(pcdSample_pre) - 1:
+        if pcdSample_pre[i][0] > max_x :
+            max_x = pcdSample_pre[i][0]
+        
+        if pcdSample_pre[i][0] < min_x :
+            min_x = pcdSample_pre[i][0]
+            
+        if pcdSample_pre[i][1] > max_y :
+            max_y = pcdSample_pre[i][1]
+            
+        if pcdSample_pre[i][1] < min_y:
+            min_y = pcdSample_pre[i][1]
+        
+        if pcdSample_pre[i][2] > max_z:
+            max_z = pcdSample_pre[i][2]
+        
+        i = i + 1
+        
+    max_x = max_x - (diameter / 2)
+    min_x = min_x + (diameter / 2)
+    max_y = max_y - (diameter / 2)
+    min_y = min_y + (diameter / 2)
+    
+    return 0 
+    
 
 def backAndForth(Point, Normal):
    #ARRANGE IN ORDER X
@@ -569,7 +630,7 @@ def main():
     #overlap = int(input("[Q]overlap (0~90%) : "))
     overlap = 50
     #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "002_rand.xyz"
+    FileName = "001_rand.xyz"
 
     print("diameter = ", diameter)
     print("overlap = ", overlap)
@@ -601,10 +662,11 @@ def test():
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 40
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 40
+    overlap = 20
     #FileName = str(input("[Q]file name(.xyz) : "))
     FileName = "002_rand.xyz"
-    pointCloudSample()
+    z = 5
+    pointCloudSample(diameter, overlap, z)
 
 
 if __name__ == '__main__':
