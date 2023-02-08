@@ -314,7 +314,7 @@ def backAndForth(Point, Normal):
     while i < len(Point):
         Point[i][0] = CountingArray[i][0]
         Point[i][1] = CountingArray[i][1] 
-        Point[i][2] = CountingArray[i][2]
+        Point[i][2] = CountingArray[i][2] + 20
 
         i = i + 1
 
@@ -404,7 +404,7 @@ def circularArrangement(Point):
 
     # normal proccessing
     # let end-effector keep 10mm from the wall
-    Point, Parall = wallNormalProccessing(10, CountingArray)
+    Point, Parall = wallNormalProccessing(20, CountingArray)
 
     # output ordered waypoints
     workingSpaceTF(Point, Parall)
@@ -535,33 +535,33 @@ def wallNormalProccessing(d, CountingArray):
             Point[i][0] = Point[i][0] - d*math.sin(slope)
             Point[i][1] = Point[i][1] - d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180) 
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = math.cos(slope)
-            Parall[i][1] = 0.000
-            Parall[i][2] = math.sin(slope)
+            Parall[i][0] = 0.000
+            Parall[i][1] = slope*180/3.1415
+            Parall[i][2] = 0.000
 
         if(CountingArray[i][3] <= (180 - corner) and CountingArray[i][3] > corner ):
             Point[i][0] = Point[i][0] - d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][1] = Point[i][1] - d*math.sin(slope)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = 0.000
-            Parall[i][1] = math.cos(slope)
-            Parall[i][2] = math.sin(slope)
+            Parall[i][0] = -slope*180/3.1415
+            Parall[i][1] = 0.000
+            Parall[i][2] = 0.000
 
         if(CountingArray[i][3] <= 180 and CountingArray[i][3] > (180 - corner) or  CountingArray[i][3] < (-180 + corner)  and CountingArray[i][3] >= -180):
             Point[i][0] = Point[i][0] + d*math.sin(slope)
             Point[i][1] = Point[i][1] + d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = -math.cos(slope)
-            Parall[i][1] = 0.000
-            Parall[i][2] = math.sin(slope)
+            Parall[i][0] = 0.000
+            Parall[i][1] = -slope*180/3.1415
+            Parall[i][2] = 0.000
 
         if(CountingArray[i][3] <= -corner and CountingArray[i][3] >= (-180 + corner)):
             Point[i][0] = Point[i][0] + d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][1] = Point[i][1] + d*math.sin(slope)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = 0.000
-            Parall[i][1] = -math.cos(slope)
-            Parall[i][2] = math.sin(slope) 
+            Parall[i][0] = slope*180/3.1415
+            Parall[i][1] = 0.000
+            Parall[i][2] = 0.000
 
     return Point, Parall
     
@@ -576,30 +576,30 @@ def workingSpaceTF(Position,Vector):
     global waypoints
     waypoints = []
 
+    theta = 60*(3.1415/180)
+    rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
+
+    transition_p = [240.000 , -370.000, -270.000]
+    transition_v = [90, 0, 90-theta*(180/3.1415)]
+
+    # initial position
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+
     for i in range(0, n): 
-        # transform points to workspace
-        transition_p = [240 , -370, -270]
-        theta = 60*(3.1415/180)
-        rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
+        # transform points to workspace     
         Position_tf = np.matmul(Position[i], rotation_matrix) ## rotation
         Position_tf = Position_tf + transition_p ## transition
 
         # transform vector to workspace 
-        transition_v = [90, 0, 90]
-        Vector_tf = np.matmul(Vector[i], rotation_matrix) ## rotation
-        phi = math.degrees(math.atan2(Vector_tf[1],Vector_tf[2]))  
-        theta = math.degrees(math.atan2(Vector_tf[0],Vector_tf[2]))
-        psi = 0.000
-
-        if phi < -0.000 and phi > -0.0001: phi = 0.000 ## prevent the value of -0.000...
-        if theta < -0.000 and theta > -0.0001: theta = 0.000
-        
-        Vector_tf = np.array([phi, theta, psi]) # transform euler vector to engle representation
+        Vector_tf = np.array([Vector[i][0], Vector[i][1], Vector[i][2]]) 
         Vector_tf = Vector_tf + transition_v ## transition
         
         # output watpoints
         waypoints.append(WayPoints(Position_tf[0], Position_tf[1], Position_tf[2], Vector_tf[0], Vector_tf[1], Vector_tf[2]))
     
+    # end position
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+
     return 0
 
 
