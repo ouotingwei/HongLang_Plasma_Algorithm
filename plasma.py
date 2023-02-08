@@ -76,7 +76,7 @@ def pointCloudSample(diameter):
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=5) 
+    downpcd = pcd.voxel_down_sample(voxel_size=1) 
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -125,12 +125,15 @@ def pointCloudSample(diameter):
     z = max_z
     
     times_x = 2
-    times_y = 8
+    times_y = 4
     times_z = 3
     
     sample_x = x / times_x
     sample_y = y / times_y
     sample_z = z / times_z
+
+    
+    filter = 0.2
     
     #flag pcdSsample[i][6] -> 0 & sample x & y
     i = 0
@@ -139,18 +142,20 @@ def pointCloudSample(diameter):
         pcdSample_pre[i][6] = 0
     
         
-        if int(pcdSample_pre[i][0] / sample_x) == 0 and int(pcdSample_pre[i][1] / sample_y) == 0 and pcdSample_pre[i][2] < radius:
+        if int(pcdSample_pre[i][0] % sample_x) == 0 and int(pcdSample_pre[i][1] % sample_y) == 0 and pcdSample_pre[i][2] < radius:
             pcdSample_pre[i][6] = 1
             filterCNT = filterCNT + 1
         
 
-        if int(pcdSample_pre[i][2] / sample_z) == 0 and pcdSample_pre[i][2] > radius:
+        if int(pcdSample_pre[i][2] % sample_z) == 0 and pcdSample_pre[i][2] > radius:
             pcdSample_pre[i][6] = 1
             filterCNT = filterCNT + 1
 
         i = i + 1
         
     pcdSample = np.zeros((filterCNT, 6), float)
+
+    print(filterCNT)
 
     
     i = 0
