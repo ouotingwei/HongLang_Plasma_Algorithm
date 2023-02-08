@@ -127,10 +127,10 @@ def pointCloudSample(diameter):
     
     times_x = 3
     times_y = 4
-    times_z = 2
+    times_z = 3
     
     sample_x = x / times_x
-    sample_y = y / times_y
+    sample_y = y / (times_y - 1)
     sample_z = z / times_z
 
     filter = 0.5
@@ -157,29 +157,28 @@ def pointCloudSample(diameter):
 
     #bottom 
     max_x
-    bottomDot = np.zeros((times_x * times_y, 2), float)
+    bottomDot = np.zeros(( (times_x + 1) * (times_y), 2), float)
 
     i = 0
     timesX = 0
     timesY = 0
     while i < len(bottomDot):
         if  (i + 1) % times_y != 0:
-            
-            bottomDot[i][0] = x - timesX * sample_x
-            bottomDot[i][1] = y - timesY * sample_y
+            bottomDot[i][0] = max_x - timesX * sample_x
+            bottomDot[i][1] = max_y - timesY * sample_y
             timesY = timesY + 1
 
         if  (i + 1) % times_y == 0:
-            bottomDot[i][0] = x - timesX * sample_x
-            bottomDot[i][1] = y - timesY * sample_y
+            bottomDot[i][0] = max_x - timesX * sample_x
+            bottomDot[i][1] = max_y - timesY * sample_y
             timesX = timesX + 1
             timesY = 0
     
         i = i + 1
 
-    pcdSample = np.zeros((filterCNT + (times_x * times_y), 6), float)
+    pcdSample = np.zeros((filterCNT + ((times_x + 1) * times_y), 6), float)
 
-    print(filterCNT)
+    #print(bottomDot)
 
     i = 0
     pcdCNT = 0
@@ -197,13 +196,14 @@ def pointCloudSample(diameter):
         i = i + 1
 
     i = 0
-    while pcdCNT < (filterCNT + (times_x * times_y)):
+    while i < (len(bottomDot)):
         pcdSample[pcdCNT][0] = bottomDot[i][0]
         pcdSample[pcdCNT][1] = bottomDot[i][1]
         pcdSample[pcdCNT][2] = 0
 
         i = i + 1
         pcdCNT = pcdCNT + 1
+
         
     return 0
 
@@ -355,6 +355,7 @@ def backAndForth(Point, Normal):
 
         i = i + 1
 
+
     # output ordered waypoints
     workingSpaceTF(Point, np.zeros(((len(Point), 3)), float))
 
@@ -435,6 +436,14 @@ def circularArrangement(Point):
                 n = n + 1 
 
             cnt = 1
+
+        i = i + 1
+
+    i = 0
+    while i < len(Point):
+        Point[i][0] = CountingArray[i][0]
+        Point[i][1] = CountingArray[i][1] 
+        Point[i][2] = CountingArray[i][2] 
 
         i = i + 1
 
@@ -618,7 +627,7 @@ def workingSpaceTF(Position,Vector):
     transition_v = [90, 0, 90-theta*(180/3.1415)]
 
     # initial position
-    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+    #waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
 
     for i in range(0, n): 
         # transform points to workspace     
@@ -633,7 +642,7 @@ def workingSpaceTF(Position,Vector):
         waypoints.append(WayPoints(Position_tf[0], Position_tf[1], Position_tf[2], Vector_tf[0], Vector_tf[1], Vector_tf[2]))
     
     # end position
-    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+    #waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
 
     return 0
 
@@ -737,6 +746,13 @@ def test():
     global FileName
     global OutputFile
     gate = 5
+
+    '''
+    global times_x
+    global times_y
+    global times_z
+    '''
+    
 
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 50
