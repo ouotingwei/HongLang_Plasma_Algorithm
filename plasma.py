@@ -409,10 +409,11 @@ def circularArrangement(Point):
 
     # normal proccessing
     # let end-effector keep 10mm from the wall
-    Point, Parall = wallNormalProccessing(20, CountingArray)
+    # Point, Parall = wallNormalProccessing(20, CountingArray)
 
     # output ordered waypoints
-    workingSpaceTF(Point, Parall)
+    # workingSpaceTF(Point, Parall)
+    workingSpaceTF(Point, np.zeros(((len(Point) , 3)), float))
     
     
 # !
@@ -541,14 +542,14 @@ def wallNormalProccessing(d, CountingArray):
             Point[i][1] = Point[i][1] - d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180) 
             Point[i][2] = Point[i][2] + d*math.cos(slope)
             Parall[i][0] = 0.000
-            Parall[i][1] = slope*180/3.1415
+            Parall[i][1] = 90 - slope*180/3.1415
             Parall[i][2] = 0.000
 
         if(CountingArray[i][3] <= (180 - corner) and CountingArray[i][3] > corner ):
             Point[i][0] = Point[i][0] - d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][1] = Point[i][1] - d*math.sin(slope)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = -slope*180/3.1415
+            Parall[i][0] = - (90 - slope*180/3.1415)
             Parall[i][1] = 0.000
             Parall[i][2] = 0.000
 
@@ -557,14 +558,14 @@ def wallNormalProccessing(d, CountingArray):
             Point[i][1] = Point[i][1] + d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
             Parall[i][0] = 0.000
-            Parall[i][1] = -slope*180/3.1415
+            Parall[i][1] = - (90 - slope*180/3.1415)
             Parall[i][2] = 0.000
 
         if(CountingArray[i][3] <= -corner and CountingArray[i][3] >= (-180 + corner)):
             Point[i][0] = Point[i][0] + d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
             Point[i][1] = Point[i][1] + d*math.sin(slope)
             Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = slope*180/3.1415
+            Parall[i][0] = 90 - slope*180/3.1415
             Parall[i][1] = 0.000
             Parall[i][2] = 0.000
 
