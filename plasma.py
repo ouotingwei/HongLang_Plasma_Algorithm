@@ -118,46 +118,69 @@ def pointCloudSample(diameter):
 
     fingMaximumBondary(pcdSample_pre, diameter)
     
-    radius = 3
+    global R
+    R = 3
     
     x = max_x - min_x
     y = max_y - min_y
     z = max_z
     
-    times_x = 2
+    times_x = 3
     times_y = 4
-    times_z = 3
+    times_z = 2
     
     sample_x = x / times_x
     sample_y = y / times_y
     sample_z = z / times_z
 
-    
-    filter = 0.2
+    filter = 0.5
     
     #flag pcdSsample[i][6] -> 0 & sample x & y
     i = 0
     filterCNT = 0
+
+    #wall
     while i < len(pcdSample_pre):
         pcdSample_pre[i][6] = 0
-    
-        
-        if int(pcdSample_pre[i][0] % sample_x) == 0 and int(pcdSample_pre[i][1] % sample_y) == 0 and pcdSample_pre[i][2] < radius:
+
+        '''
+        if pcdSample_pre[i][0] % sample_x < filter and pcdSample_pre[i][0] % sample_x > -1 * filter and pcdSample_pre[i][1] % sample_y < filter and pcdSample_pre[i][1] % sample_y > -1 * filter and pcdSample_pre[i][2] < R:
             pcdSample_pre[i][6] = 1
             filterCNT = filterCNT + 1
+        '''
         
-
-        if int(pcdSample_pre[i][2] % sample_z) == 0 and pcdSample_pre[i][2] > radius:
+        if pcdSample_pre[i][2] % sample_z < filter and pcdSample_pre[i][2] % sample_z > -1 * filter and pcdSample_pre[i][2] > R:
             pcdSample_pre[i][6] = 1
             filterCNT = filterCNT + 1
 
         i = i + 1
-        
-    pcdSample = np.zeros((filterCNT, 6), float)
+
+    #bottom 
+    max_x
+    bottomDot = np.zeros((times_x * times_y, 2), float)
+
+    i = 0
+    timesX = 0
+    timesY = 0
+    while i < len(bottomDot):
+        if  (i + 1) % times_y != 0:
+            
+            bottomDot[i][0] = x - timesX * sample_x
+            bottomDot[i][1] = y - timesY * sample_y
+            timesY = timesY + 1
+
+        if  (i + 1) % times_y == 0:
+            bottomDot[i][0] = x - timesX * sample_x
+            bottomDot[i][1] = y - timesY * sample_y
+            timesX = timesX + 1
+            timesY = 0
+    
+        i = i + 1
+
+    pcdSample = np.zeros((filterCNT + (times_x * times_y), 6), float)
 
     print(filterCNT)
 
-    
     i = 0
     pcdCNT = 0
     while i < len(pcdSample_pre):
@@ -172,8 +195,16 @@ def pointCloudSample(diameter):
             pcdCNT = pcdCNT + 1
         
         i = i + 1
-        
 
+    i = 0
+    while pcdCNT < (filterCNT + (times_x * times_y)):
+        pcdSample[pcdCNT][0] = bottomDot[i][0]
+        pcdSample[pcdCNT][1] = bottomDot[i][1]
+        pcdSample[pcdCNT][2] = 0
+
+        i = i + 1
+        pcdCNT = pcdCNT + 1
+        
     return 0
 
 def fingMaximumBondary(pcdSample_pre, diameter):
@@ -211,7 +242,8 @@ def fingMaximumBondary(pcdSample_pre, diameter):
     min_x = min_x + (diameter / 2)
     max_y = max_y - (diameter / 2)
     min_y = min_y + (diameter / 2)
-    
+
+
     return 0 
     
 
@@ -380,7 +412,7 @@ def circularArrangement(Point):
 
             n = 0
             while n < cnt:
-                TempArray[n][0] = CountingArray[i-cnt+n+1][0]    #
+                TempArray[n][0] = CountingArray[i-cnt+n+1][0]    
                 TempArray[n][1] = CountingArray[i-cnt+n+1][1]
                 TempArray[n][2] = CountingArray[i-cnt+n+1][2]
                 TempArray[n][3] = CountingArray[i-cnt+n+1][3]
@@ -393,8 +425,7 @@ def circularArrangement(Point):
                         TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
                         TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
                         TempArray[j][3], TempArray[j+1][3] = TempArray[j+1][3], TempArray[j][3]
-                        
-                    
+                          
             n = 0
             while n < cnt:
                 CountingArray[i-cnt+n+1][0] = TempArray[n][0]
@@ -424,7 +455,7 @@ def Wall(gate):
     i = 0
     size = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) > gate: #gate = 10
+        if int(PointArray[i][2]) > R: #gate = 10
             size = size + 1
         
         i = i + 1
@@ -434,7 +465,7 @@ def Wall(gate):
     i = 0
     cnt = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) > gate:
+        if int(PointArray[i][2]) > R:
             Point_filter[cnt][0] = PointArray[i][0]
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
@@ -466,11 +497,10 @@ def BottomFlat(gate):
         
         i = i + 1
     
-    
     i = 0
     size = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) < gate : # gate = 5
+        if int(PointArray[i][2]) < R:
             size  = size + 1
         
         i = i + 1
@@ -481,7 +511,7 @@ def BottomFlat(gate):
     i = 0
     cnt = 0
     while i < len(PointArray):
-        if int(PointArray[i][2]) < gate:
+        if int(PointArray[i][2]) < R:
             Point_filter[cnt][0] = PointArray[i][0]
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
@@ -531,7 +561,6 @@ def wallNormalProccessing(d, CountingArray):
     
     slope /= cnt
 
-    
     # let end_effector keep a distance d and be parallel to the wall
     max_x, max_y = findMaxXY()
     corner = math.atan2(max_y, max_x)*180/3.1415
@@ -649,7 +678,6 @@ def writeLsFile(file, waypoints):
     f.write("/END\n")
     f.close()
     return 0
-
 
 
 def getDistance(vector_1,vector_2):
