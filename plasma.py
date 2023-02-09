@@ -31,7 +31,16 @@ class WayPoints:
         self.C = C  # continuity
 
 
-def pointCloudProcess(diameter, overlap):
+def findBug(test):
+    i = 0
+    while i < len(test):
+        if test[i][0] == 0 and test[i][1] == 0 :
+            print("number ", i ,"is [0, 0]")
+
+        i = i + 1
+
+
+def pointCloudProcess_v1(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
 
@@ -66,15 +75,14 @@ def pointCloudProcess(diameter, overlap):
     
     return 0
 
-
-def pointCloudSample(diameter):
+def pointCloudSampleWall(diameter):
     # read .xyz file
     global pcd
     global pcdSample
     pcd = o3d.io.read_point_cloud(FileName)
 
-    o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
-    print("origin : ",pcd)
+    #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    #print("origin : ",pcd)
 
     downpcd = pcd.voxel_down_sample(voxel_size=1) 
     #o3d.visualization.draw_geometries([downpcd])
@@ -82,10 +90,19 @@ def pointCloudSample(diameter):
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
+    #### scall
+    global pcd_small_size
+    max_x, max_y = findMaxXY()
+    w = max_x*2
+    h = max_y*2
+    scale_size = ((w-20)*(h-20))/(w*h)
+    pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
+    ####
+
     #modular design not yet
     radius = 50
     max_nn = 50
-
+    
     pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
     totol_point = np.asarray(pcd.normals)[:,:].size/3
     pcd.paint_uniform_color([1, 0.706, 0])
@@ -95,8 +112,8 @@ def pointCloudSample(diameter):
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
     #modular design not yet
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
-    o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
+    #o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
+    #o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
 
     #sample
     points = np.asarray(pcd.points)
@@ -125,9 +142,9 @@ def pointCloudSample(diameter):
     y = max_y - min_y
     z = max_z
     
-    times_x = 3
-    times_y = 4
-    times_z = 3
+    times_x = 10
+    times_y = 14
+    times_z = 4
     
     sample_x = x / times_x
     sample_y = y / (times_y - 1)
@@ -207,6 +224,144 @@ def pointCloudSample(diameter):
         
     return 0
 
+
+def pointCloudSampleBot(diameter):
+    # read .xyz file
+    global pcd
+    global pcdSample
+    pcd = o3d.io.read_point_cloud(FileName)
+
+    #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    #print("origin : ",pcd)
+
+    downpcd = pcd.voxel_down_sample(voxel_size=1) 
+    #o3d.visualization.draw_geometries([downpcd])
+    print('downsample pointcloud',downpcd)
+    o3d.io.write_point_cloud('result_down.ply', downpcd)
+    pcd = o3d.io.read_point_cloud("result_down.ply")
+
+    #modular design not yet
+    radius = 50
+    max_nn = 50
+
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius, max_nn))
+    totol_point = np.asarray(pcd.normals)[:,:].size/3
+    pcd.paint_uniform_color([1, 0.706, 0])
+
+    for i in range(0,int(totol_point)):
+        if abs(np.asarray(pcd.normals)[i][1])  > 0.3:
+            np.asarray(pcd.colors)[i, :] = [0, 0, 1]
+
+    #modular design not yet
+    #o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
+    #o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True) 
+
+    #sample
+    points = np.asarray(pcd.points)
+    normals = np.asarray(pcd.normals)
+    pcdSample_pre = np.zeros((len(points), 7), float) # [x][y][z][a][b][c][ = 1 -> base , = 0 -> wall ]
+
+    #sample
+    i = 0
+    while i < len(pcdSample_pre):
+        pcdSample_pre[i][0] = points[i][0]
+        pcdSample_pre[i][1] = points[i][1]
+        pcdSample_pre[i][2] = points[i][2]
+        pcdSample_pre[i][3] = normals[i][0]
+        pcdSample_pre[i][4] = normals[i][1]
+        pcdSample_pre[i][5] = normals[i][2]
+        
+        
+        i = i + 1
+
+    fingMaximumBondary(pcdSample_pre, diameter)
+    
+    global R
+    R = 3
+    
+    x = max_x - min_x
+    y = max_y - min_y
+    z = max_z
+    
+    times_x = 10
+    times_y = 14
+    times_z = 4
+    
+    sample_x = x / times_x
+    sample_y = y / (times_y - 1)
+    sample_z = z / times_z
+
+    filter = 0.5
+    
+    #flag pcdSsample[i][6] -> 0 & sample x & y
+    i = 0
+    filterCNT = 0
+
+    #wall
+    while i < len(pcdSample_pre):
+        pcdSample_pre[i][6] = 0
+
+        '''
+        if pcdSample_pre[i][0] % sample_x < filter and pcdSample_pre[i][0] % sample_x > -1 * filter and pcdSample_pre[i][1] % sample_y < filter and pcdSample_pre[i][1] % sample_y > -1 * filter and pcdSample_pre[i][2] < R:
+            pcdSample_pre[i][6] = 1
+            filterCNT = filterCNT + 1
+        '''
+        
+        if pcdSample_pre[i][2] % sample_z < filter and pcdSample_pre[i][2] % sample_z > -1 * filter and pcdSample_pre[i][2] > R:
+            pcdSample_pre[i][6] = 1
+            filterCNT = filterCNT + 1
+
+        i = i + 1
+
+    #bottom 
+    max_x
+    bottomDot = np.zeros(( (times_x + 1) * (times_y), 2), float)
+
+    i = 0
+    timesX = 0
+    timesY = 0
+    while i < len(bottomDot):
+        if  (i + 1) % times_y != 0:
+            bottomDot[i][0] = max_x - timesX * sample_x
+            bottomDot[i][1] = max_y - timesY * sample_y
+            timesY = timesY + 1
+
+        if  (i + 1) % times_y == 0:
+            bottomDot[i][0] = max_x - timesX * sample_x
+            bottomDot[i][1] = max_y - timesY * sample_y
+            timesX = timesX + 1
+            timesY = 0
+    
+        i = i + 1
+
+    pcdSample = np.zeros((filterCNT + ((times_x + 1) * times_y), 6), float)
+
+    i = 0
+    pcdCNT = 0
+    while i < len(pcdSample_pre):
+        if pcdSample_pre[i][6] == 1:
+            pcdSample[pcdCNT][0] = pcdSample_pre[i][0]
+            pcdSample[pcdCNT][1] = pcdSample_pre[i][1]
+            pcdSample[pcdCNT][2] = pcdSample_pre[i][2]
+            pcdSample[pcdCNT][3] = pcdSample_pre[i][3]
+            pcdSample[pcdCNT][4] = pcdSample_pre[i][4]
+            pcdSample[pcdCNT][5] = pcdSample_pre[i][5]
+            
+            pcdCNT = pcdCNT + 1
+        
+        i = i + 1
+
+    i = 0
+    while i < (len(bottomDot)):
+        pcdSample[pcdCNT][0] = bottomDot[i][0]
+        pcdSample[pcdCNT][1] = bottomDot[i][1]
+        pcdSample[pcdCNT][2] = 0
+
+        i = i + 1
+        pcdCNT = pcdCNT + 1
+
+    return 0
+
 def fingMaximumBondary(pcdSample_pre, diameter):
     global max_x
     global min_x 
@@ -247,6 +402,7 @@ def fingMaximumBondary(pcdSample_pre, diameter):
     return 0 
     
 
+#add two point
 def backAndForth(Point, Normal):
    #ARRANGE IN ORDER X
     n = len(Point)
@@ -346,18 +502,45 @@ def backAndForth(Point, Normal):
                     cnt = cnt + 1
  
         i = i + 1
+
+    mark = 0
+    while CountingArray[mark][0] != 0 and CountingArray[mark][1] != 0:
+        mark = mark + 1
+
+    Array = np.zeros(((len(Point)  , 3)), float)
+
+    i = 0
+    cnt = 0
+    while i < len(Array):
+        if i != mark:
+            Array[i][0] = CountingArray[cnt][0]
+            Array[i][1] = CountingArray[cnt][1]
+            Array[i][2] = CountingArray[cnt][2]
+            
+            i = i + 1
+            cnt = cnt + 1
+        
+        else:
+            cnt = cnt + 1
+            Array[i][0] = CountingArray[cnt][0]
+            Array[i][1] = CountingArray[cnt][1]
+            Array[i][2] = CountingArray[cnt][2]
+
+            i = i + 1
     
+    #shit
+    PArray = np.zeros(((len(Point) + 2  , 3)), float)
+
     i = 0
     while i < len(Point):
-        Point[i][0] = CountingArray[i][0]
-        Point[i][1] = CountingArray[i][1] 
-        Point[i][2] = CountingArray[i][2] + 20
+        PArray[i][0] = Array[i][0]
+        PArray[i][1] = Array[i][1] 
+        PArray[i][2] = Array[i][2] + 20
 
         i = i + 1
 
-
     # output ordered waypoints
-    workingSpaceTF(Point, np.zeros(((len(Point), 3)), float))
+    workingSpaceTF(PArray, np.zeros(((len(Point) + 2, 3)), float))
 
 
 def circularArrangement(Point):
@@ -439,13 +622,39 @@ def circularArrangement(Point):
 
         i = i + 1
 
+    mark = 0
+    while CountingArray[mark][0] != 0 and CountingArray[mark][1] != 0:
+        mark = mark + 1
+
+    Array = np.zeros(((len(Point)  , 3)), float)
+
+    i = 0
+    cnt = 0
+    while i < len(Array):
+        if i != mark:
+            Array[i][0] = CountingArray[cnt][0]
+            Array[i][1] = CountingArray[cnt][1]
+            Array[i][2] = CountingArray[cnt][2]
+            
+            i = i + 1
+            cnt = cnt + 1
+        
+        else:
+            cnt = cnt + 1
+            Array[i][0] = CountingArray[cnt][0]
+            Array[i][1] = CountingArray[cnt][1]
+            Array[i][2] = CountingArray[cnt][2]
+
+            i = i + 1
+    
     i = 0
     while i < len(Point):
-        Point[i][0] = CountingArray[i][0]
-        Point[i][1] = CountingArray[i][1] 
-        Point[i][2] = CountingArray[i][2] 
+        Point[i][0] = Array[i][0]
+        Point[i][1] = Array[i][1] 
+        Point[i][2] = Array[i][2] + 20
 
         i = i + 1
+    
 
     # normal proccessing
     # let end-effector keep 10mm from the wall
@@ -623,13 +832,15 @@ def workingSpaceTF(Position,Vector):
     theta = 60*(3.1415/180)
     rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
 
-    transition_p = [240.000 , -370.000, -270.000]
-    transition_v = [90, 0, 90-theta*(180/3.1415)]
+    transition_p = [195.000 , -410.000, -270.000]
+    # transition_v = [90, 0, 90-theta*(180/3.1415)]
+    transition_v = [90, 0, 90]
+
 
     # initial position
-    #waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
 
-    for i in range(0, n): 
+    for i in range(0, n-2): 
         # transform points to workspace     
         Position_tf = np.matmul(Position[i], rotation_matrix) ## rotation
         Position_tf = Position_tf + transition_p ## transition
@@ -642,7 +853,7 @@ def workingSpaceTF(Position,Vector):
         waypoints.append(WayPoints(Position_tf[0], Position_tf[1], Position_tf[2], Vector_tf[0], Vector_tf[1], Vector_tf[2]))
     
     # end position
-    #waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
 
     return 0
 
@@ -712,29 +923,38 @@ def main():
     global FileName
     global OutputFile
     gate = 5
+    global times_x 
+    global times_y
+    global times_z
 
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 50
     #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 0
+    #overlap = 0
     #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "002_rand.xyz"
 
-    print("diameter = ", diameter)
-    print("overlap = ", overlap)
+    times_x = int(input("[Q]times_x : "))
+    times_y = int(input("[Q]times_y : "))
+    times_z = int(input("[Q]times_z : "))
+    FileName = "001_rand.xyz"
+
+    #print("diameter = ", diameter)
+    #print("overlap = ", overlap)
     print("FileName = ", FileName)
     
     #pointCloudProcess(diameter, overlap)
-    pointCloudSample(diameter)
 
     start = time.time()
     
     # !
-    OutputFile = "WALL01.LS"
+    pointCloudSampleWall(diameter)
+    OutputFile = "WALL001.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
-    OutputFile = "BOTTOM01.LS"
+    pointCloudSampleBot(diameter)
+
+    OutputFile = "BOTTOM001.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
@@ -742,28 +962,5 @@ def main():
     print("time used :", end - start, "sec")
 
 
-def test():
-    global FileName
-    global OutputFile
-    gate = 5
-
-    '''
-    global times_x
-    global times_y
-    global times_z
-    '''
-    
-
-    #diameter = float(input("[Q]diameter (mm) : "))
-    diameter = 50
-    #overlap = int(input("[Q]overlap (0~90%) : "))
-    overlap = 0
-    #FileName = str(input("[Q]file name(.xyz) : "))
-    FileName = "002_rand.xyz"
-
-    pointCloudSample(diameter)
-
-
 if __name__ == '__main__':
     main()
-    #test()
