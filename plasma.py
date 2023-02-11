@@ -651,7 +651,7 @@ def circularArrangement(Point):
     while i < len(Point):
         Point[i][0] = Array[i][0]
         Point[i][1] = Array[i][1] 
-        Point[i][2] = Array[i][2] + 75
+        Point[i][2] = Array[i][2] + test_z
 
         i = i + 1
     
@@ -922,10 +922,13 @@ def findMaxXY():
 def main():
     global FileName
     global OutputFile
-    gate = 5
     global times_x 
     global times_y
     global times_z
+    global test_z 
+
+    test_z = 75
+    gate = 5
 
     #diameter = float(input("[Q]diameter (mm) : "))
     diameter = 50
@@ -948,13 +951,13 @@ def main():
     
     # !
     pointCloudSampleWall(diameter)
-    OutputFile = "TEST.LS"
+    OutputFile = "W0211.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "TEST.LS"
+    OutputFile = "B0211.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
