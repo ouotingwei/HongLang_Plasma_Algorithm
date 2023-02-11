@@ -20,8 +20,8 @@ import  time
 
 
 class WayPoints:
-    def __init__(self, x=0.000, y=0.000, z=0.000, W=0.000, P=0.000, R=0.000, V=100, C="CNT0"):
-        self.x = x  # x
+    def __init__(self, x=0.000, y=0.000, z=0.000, W=0.000, P=0.000, R=0.000, V=100, C="CNT100"):
+        self.x = x  # xs
         self.y = y  # y
         self.z = z  # z
         self.W = W  # phi
@@ -48,8 +48,8 @@ def pointCloudProcess_v1(diameter, overlap):
     global pcd 
     pcd = o3d.io.read_point_cloud(FileName)
 
-    #o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
-    #print("origin : ",pcd)
+    o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
+    print("origin : ",pcd)
 
     downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
     #o3d.visualization.draw_geometries([downpcd])
@@ -95,7 +95,7 @@ def pointCloudSampleWall(diameter):
     max_x, max_y = findMaxXY()
     w = max_x*2
     h = max_y*2
-    scale_size = ((w-20)*(h-20))/(w*h)
+    scale_size = ((w-5)*(h-5))/(w*h)
     pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
     ####
 
@@ -142,9 +142,9 @@ def pointCloudSampleWall(diameter):
     y = max_y - min_y
     z = max_z
     
-    times_x = 10
-    times_y = 14
-    times_z = 4
+    #times_x = 10
+    #times_y = 14
+    #times_z = 4
     
     sample_x = x / times_x
     sample_y = y / (times_y - 1)
@@ -283,9 +283,9 @@ def pointCloudSampleBot(diameter):
     y = max_y - min_y
     z = max_z
     
-    times_x = 10
-    times_y = 14
-    times_z = 4
+    #times_x = 10
+    #times_y = 14
+    #times_z = 4
     
     sample_x = x / times_x
     sample_y = y / (times_y - 1)
@@ -651,7 +651,7 @@ def circularArrangement(Point):
     while i < len(Point):
         Point[i][0] = Array[i][0]
         Point[i][1] = Array[i][1] 
-        Point[i][2] = Array[i][2] + 20
+        Point[i][2] = Array[i][2] + 75
 
         i = i + 1
     
@@ -832,7 +832,7 @@ def workingSpaceTF(Position,Vector):
     theta = 60*(3.1415/180)
     rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
 
-    transition_p = [195.000 , -410.000, -270.000]
+    transition_p = [180.000 , -380.000, -350.000]
     # transition_v = [90, 0, 90-theta*(180/3.1415)]
     transition_v = [90, 0, 90]
 
@@ -948,13 +948,13 @@ def main():
     
     # !
     pointCloudSampleWall(diameter)
-    OutputFile = "WALL001.LS"
+    OutputFile = "TEST.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "BOTTOM001.LS"
+    OutputFile = "TEST.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
