@@ -832,7 +832,7 @@ def workingSpaceTF(Position,Vector):
     theta = 60*(3.1415/180)
     rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
 
-    transition_p = [180.000 , -380.000, -350.000]
+    transition_p = [210.000 , -375.000, -350.000]
     # transition_v = [90, 0, 90-theta*(180/3.1415)]
     transition_v = [90, 0, 90]
 
