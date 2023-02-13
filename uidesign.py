@@ -5,13 +5,26 @@ root.configure(bg="#7AFEC6")
 text=tk.Label(root, text="Hello\@^0^@/",font=("Bauhaus 93",20,"bold"))
 
 count=0
-def clickHello():
-    global count
+def clickModel():
+    global model
+    model = 0
     count=count + 1
     text.config(text="Click Hello " + str(count) + " times")
-B=tk.Button(root, text="Hello", command=clickHello,font=("Bauhaus 93",20,"bold"))
+
+    if model != 0:
+        return True
+    
+    else:
+        return False
+
 
 text.pack()
 B.pack()
 
-root.mainloop()
+def main():
+    while clickModel() == True:
+        return True
+
+
+if __name__ == '__main__':
+    main()
