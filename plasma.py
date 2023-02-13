@@ -95,7 +95,7 @@ def pointCloudSampleWall(diameter):
     max_x, max_y = findMaxXY()
     w = max_x*2
     h = max_y*2
-    scale_size = ((w-10)*(h-10))/(w*h)
+    scale_size = ((w-7)*(h-7))/(w*h)
     pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
     ####
 
@@ -129,7 +129,6 @@ def pointCloudSampleWall(diameter):
         pcdSample_pre[i][3] = normals[i][0]
         pcdSample_pre[i][4] = normals[i][1]
         pcdSample_pre[i][5] = normals[i][2]
-        
         
         i = i + 1
 
@@ -220,7 +219,6 @@ def pointCloudSampleWall(diameter):
 
         i = i + 1
         pcdCNT = pcdCNT + 1
-
         
     return 0
 
@@ -271,7 +269,6 @@ def pointCloudSampleBot(diameter):
         pcdSample_pre[i][4] = normals[i][1]
         pcdSample_pre[i][5] = normals[i][2]
         
-        
         i = i + 1
 
     fingMaximumBondary(pcdSample_pre, diameter)
@@ -300,12 +297,6 @@ def pointCloudSampleBot(diameter):
     #wall
     while i < len(pcdSample_pre):
         pcdSample_pre[i][6] = 0
-
-        '''
-        if pcdSample_pre[i][0] % sample_x < filter and pcdSample_pre[i][0] % sample_x > -1 * filter and pcdSample_pre[i][1] % sample_y < filter and pcdSample_pre[i][1] % sample_y > -1 * filter and pcdSample_pre[i][2] < R:
-            pcdSample_pre[i][6] = 1
-            filterCNT = filterCNT + 1
-        '''
         
         if pcdSample_pre[i][2] % sample_z < filter and pcdSample_pre[i][2] % sample_z > -1 * filter and pcdSample_pre[i][2] > R:
             pcdSample_pre[i][6] = 1
@@ -410,10 +401,6 @@ def backAndForth(Point):
             if Point[j][0] > Point[j+1][0]:
                 Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
                 Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
-                Point[j][2], Point[j+1][2] = Point[j+1][2], Point[j][2]
-    
-    #print(point_arr)
-    #print("")
 
     #INITALIZATION
     CountingArray = np.zeros(((len(Point) + 1, 5)), float)
@@ -452,7 +439,7 @@ def backAndForth(Point):
         if CountingArray[i+1][3] == 1 :
             n = int(CountingArray[i][3])
 
-            if (int(CountingArray[i][4]) % 2) == 0:
+            if (int(CountingArray[i][4]) % 2) == 0 or int(CountingArray[i][4]) == 0:
                 cnt = 0
                 TempArray = np.zeros(((n, 5)), float)
 
@@ -501,42 +488,18 @@ def backAndForth(Point):
                     cnt = cnt + 1
  
         i = i + 1
-
-    mark = 0
-    while CountingArray[mark][0] != 0 and CountingArray[mark][1] != 0:
-        mark = mark + 1
-
-    Array = np.zeros(((len(Point)  , 3)), float)
-
-    i = 0
-    cnt = 0
-    while i < len(Array):
-        if i != mark:
-            Array[i][0] = CountingArray[cnt][0]
-            Array[i][1] = CountingArray[cnt][1]
-            Array[i][2] = CountingArray[cnt][2]
-            
-            i = i + 1
-            cnt = cnt + 1
-        
-        else:
-            cnt = cnt + 1
-            Array[i][0] = CountingArray[cnt][0]
-            Array[i][1] = CountingArray[cnt][1]
-            Array[i][2] = CountingArray[cnt][2]
-
-            i = i + 1
     
-    #shit
     PArray = np.zeros(((len(Point) + 2  , 3)), float)
 
     i = 0
     while i < len(Point):
-        PArray[i][0] = Array[i][0]
-        PArray[i][1] = Array[i][1] 
-        PArray[i][2] = Array[i][2] + 20
+        PArray[i][0] = CountingArray[i][0]
+        PArray[i][1] = CountingArray[i][1] 
+        PArray[i][2] = CountingArray[i][2] + 20
 
         i = i + 1
+    print("---")
+    print(PArray)
 
     # output ordered waypoints
     workingSpaceTF(PArray, np.zeros(((len(Point) + 2, 3)), float))
@@ -654,13 +617,6 @@ def circularArrangement(Point):
 
         i = i + 1
     
-
-    # normal proccessing
-    # let end-effector keep 10mm from the wall
-    # Point, Parall = wallNormalProccessing(20, CountingArray)
-
-    # output ordered waypoints
-    # workingSpaceTF(Point, Parall)
     workingSpaceTF(Point, np.zeros(((len(Point) , 3)), float))
     
     
@@ -701,7 +657,7 @@ def BottomFlat(gate):
     #PointArray = np.asarray(pcd.points)
     #NormalArray = np.asarray(pcd.normals)
     PointArray = np.zeros(((len(pcdSample), 3)), float)
-    
+
     i = 0
     while i < len(pcdSample):
         PointArray[i][0] = pcdSample[i][0]
@@ -733,7 +689,7 @@ def BottomFlat(gate):
         i = i + 1
 
     backAndForth(Point_filter)
-    print(Point_filter)
+
     return 0
 
 
@@ -922,22 +878,24 @@ def main():
     times_y = 2
     diameter = 50
 
+    model = str(input("[Q]model : "))
     times_x = int(input("[Q]times_x : "))
     times_z = int(input("[Q]times_z : "))
-    FileName = "001_rand.xyz"
+    
+    FileName = model + "_rand.xyz"
     print("FileName = ", FileName)
     
     start = time.time()
     
     # !
     pointCloudSampleWall(diameter)
-    OutputFile = "W001.LS"
+    OutputFile = "W" + model + ".LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "B001.LS"
+    OutputFile = "B" + model + "003.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 

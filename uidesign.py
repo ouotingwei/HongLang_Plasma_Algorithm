@@ -50,6 +50,8 @@ def main():
     B3.pack()
     B4.pack()
 
+    root.mainloop()
+
 
 if __name__ == '__main__':
     main()
