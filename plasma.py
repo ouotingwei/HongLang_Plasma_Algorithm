@@ -939,7 +939,7 @@ def main():
     times_x = int(input("[Q]times_x : "))
     times_y = int(input("[Q]times_y : "))
     times_z = int(input("[Q]times_z : "))
-    FileName = "001_rand.xyz"
+    FileName = "003_rand.xyz"
 
     #print("diameter = ", diameter)
     #print("overlap = ", overlap)
@@ -951,13 +951,13 @@ def main():
     
     # !
     pointCloudSampleWall(diameter)
-    OutputFile = "W0211.LS"
+    OutputFile = "W003.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "B0211.LS"
+    OutputFile = "B003.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
