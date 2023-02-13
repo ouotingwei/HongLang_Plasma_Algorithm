@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 import open3d as o3d
 import csv
 import math
-import  time
+import time
 
 
 class WayPoints:
@@ -95,7 +95,7 @@ def pointCloudSampleWall(diameter):
     max_x, max_y = findMaxXY()
     w = max_x*2
     h = max_y*2
-    scale_size = ((w-5)*(h-5))/(w*h)
+    scale_size = ((w-10)*(h-10))/(w*h)
     pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
     ####
 
@@ -277,7 +277,7 @@ def pointCloudSampleBot(diameter):
     fingMaximumBondary(pcdSample_pre, diameter)
     
     global R
-    R = 3
+    R = 5
     
     x = max_x - min_x
     y = max_y - min_y
@@ -398,12 +398,11 @@ def fingMaximumBondary(pcdSample_pre, diameter):
     max_y = max_y - (diameter / 2)
     min_y = min_y + (diameter / 2)
 
-
     return 0 
     
 
 #add two point
-def backAndForth(Point, Normal):
+def backAndForth(Point):
    #ARRANGE IN ORDER X
     n = len(Point)
     for i in range(n-1):
@@ -678,7 +677,7 @@ def Wall(gate):
         
         i = i + 1
     
-    Point_filter = np.zeros(((size + 1, 3)), float)
+    Point_filter = np.zeros(((size , 3)), float)
 
     i = 0
     cnt = 0
@@ -702,16 +701,12 @@ def BottomFlat(gate):
     #PointArray = np.asarray(pcd.points)
     #NormalArray = np.asarray(pcd.normals)
     PointArray = np.zeros(((len(pcdSample), 3)), float)
-    NormalArray = np.zeros(((len(pcdSample), 3)), float)
     
     i = 0
     while i < len(pcdSample):
         PointArray[i][0] = pcdSample[i][0]
         PointArray[i][1] = pcdSample[i][1]
         PointArray[i][2] = pcdSample[i][2]
-        NormalArray[i][0] = pcdSample[i][3]
-        NormalArray[i][1] = pcdSample[i][4]
-        NormalArray[i][2] = pcdSample[i][5]
         
         i = i + 1
     
@@ -723,8 +718,7 @@ def BottomFlat(gate):
         
         i = i + 1
     
-    Point_filter = np.zeros(((size + 1, 3)), float)
-    Normal_filter = np.zeros(((size + 1, 3)), float)
+    Point_filter = np.zeros(((size, 3)), float)
 
     i = 0
     cnt = 0
@@ -733,15 +727,13 @@ def BottomFlat(gate):
             Point_filter[cnt][0] = PointArray[i][0]
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
-            Normal_filter[cnt][0] = NormalArray[i][0]
-            Normal_filter[cnt][1] = NormalArray[i][1]
-            Normal_filter[cnt][2] = NormalArray[i][2]
 
             cnt = cnt + 1
 
         i = i + 1
 
-    backAndForth(Point_filter, Normal_filter)
+    backAndForth(Point_filter)
+    print(Point_filter)
     return 0
 
 
@@ -836,7 +828,6 @@ def workingSpaceTF(Position,Vector):
     # transition_v = [90, 0, 90-theta*(180/3.1415)]
     transition_v = [90, 0, 90]
 
-
     # initial position
     waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
 
@@ -906,7 +897,6 @@ def getDistance(vector_1,vector_2):
 
 def findMaxXY():
     PointArray = np.asarray(pcd.points)
-
     maxX = 0
     maxY = 0
     
@@ -929,35 +919,25 @@ def main():
 
     test_z = 75
     gate = 5
-
-    #diameter = float(input("[Q]diameter (mm) : "))
+    times_y = 2
     diameter = 50
-    #overlap = int(input("[Q]overlap (0~90%) : "))
-    #overlap = 0
-    #FileName = str(input("[Q]file name(.xyz) : "))
 
     times_x = int(input("[Q]times_x : "))
-    times_y = int(input("[Q]times_y : "))
     times_z = int(input("[Q]times_z : "))
-    FileName = "003_rand.xyz"
-
-    #print("diameter = ", diameter)
-    #print("overlap = ", overlap)
+    FileName = "001_rand.xyz"
     print("FileName = ", FileName)
     
-    #pointCloudProcess(diameter, overlap)
-
     start = time.time()
     
     # !
     pointCloudSampleWall(diameter)
-    OutputFile = "W003.LS"
+    OutputFile = "W001.LS"
     Wall(gate)
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "B003.LS"
+    OutputFile = "B001.LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
