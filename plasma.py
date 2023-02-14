@@ -31,15 +31,6 @@ class WayPoints:
         self.C = C  # continuity
 
 
-def findBug(test):
-    i = 0
-    while i < len(test):
-        if test[i][0] == 0 and test[i][1] == 0 :
-            print("number ", i ,"is [0, 0]")
-
-        i = i + 1
-
-
 def pointCloudProcess_v1(diameter, overlap):
     # find the distance between two working path
     sample_dis = diameter * (1 - (overlap*0.01))
@@ -641,7 +632,6 @@ def Wall(gate):
             Point_filter[cnt][1] = PointArray[i][1]
             Point_filter[cnt][2] = PointArray[i][2]
 
-
             cnt = cnt + 1
             
         i = i + 1
@@ -885,7 +875,6 @@ def main():
     
     start = time.time()
     
-    # !
     pointCloudSampleWall(diameter)
     OutputFile = "W" + model + ".LS"
     Wall(gate)
@@ -893,7 +882,7 @@ def main():
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "B" + model + "003.LS"
+    OutputFile = "B" + model + ".LS"
     BottomFlat(gate)
     writeLsFile(OutputFile, waypoints)
 
