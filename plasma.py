@@ -893,15 +893,16 @@ def main():
 def shose():
     global OutputFile
     global FileName
-    OutputFile = "004.LS"
+    OutputFile = "P004.LS"
     FileName = "004_rand.xyz"
     diameter = int(input("[Q]dimeter : "))
     overlap = int(input("[Q]overlap : "))
     pointCloudProcess_v1(diameter, overlap)
 
-    Point = np.zeros(((len(pcd.points), 3)), float)
+    global points
+    points = np.asarray(pcd.points)
 
-    backAndForth(Point)
+    backAndForth(points)
     writeLsFile(OutputFile, waypoints)
 
 
