@@ -610,7 +610,7 @@ def circularArrangement(Point):
     
     
 # !
-def Wall(gate):
+def Wall():
     #PointArray = np.asarray(pcd.points)
     PointArray = pcdSample
 
@@ -641,7 +641,7 @@ def Wall(gate):
 
 
 # test not yet
-def BottomFlat(gate):
+def BottomFlat():
     #PointArray = np.asarray(pcd.points)
     #NormalArray = np.asarray(pcd.normals)
     PointArray = np.zeros(((len(pcdSample), 3)), float)
@@ -877,18 +877,34 @@ def main():
     
     pointCloudSampleWall(diameter)
     OutputFile = "W" + model + ".LS"
-    Wall(gate)
+    Wall()
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
     OutputFile = "B" + model + ".LS"
-    BottomFlat(gate)
+    BottomFlat()
     writeLsFile(OutputFile, waypoints)
 
     end = time.time()
     print("time used :", end - start, "sec")
 
 
+def shose():
+    global OutputFile
+    global FileName
+    OutputFile = "004.LS"
+    FileName = "004_rand.xyz"
+    diameter = int(input("[Q]dimeter : "))
+    overlap = int(input("[Q]overlap : "))
+    pointCloudProcess_v1(diameter, overlap)
+
+    Point = np.zeros(((len(pcd.points), 3)), float)
+
+    backAndForth(Point)
+    writeLsFile(OutputFile, waypoints)
+
+
 if __name__ == '__main__':
-    main()
+    #main()
+    shose()
