@@ -95,7 +95,7 @@ def pointCloudSampleWall(diameter):
     max_x, max_y = findMaxXY()
     w = max_x*2
     h = max_y*2
-    scale_size = ((w-7)*(h-7))/(w*h)
+    scale_size = ((w-7)*(h-10))/(w*h)
     pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
     ####
 
@@ -498,8 +498,6 @@ def backAndForth(Point):
         PArray[i][2] = CountingArray[i][2] + 20
 
         i = i + 1
-    print("---")
-    print(PArray)
 
     # output ordered waypoints
     workingSpaceTF(PArray, np.zeros(((len(Point) + 2, 3)), float))
