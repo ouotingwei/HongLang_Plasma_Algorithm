@@ -33,7 +33,7 @@ class WayPoints:
 
 def pointCloudProcess_v1(diameter, overlap):
     # find the distance between two working path
-    sample_dis = diameter * (1 - (overlap*0.01))
+    #sample_dis = diameter * (1 - (overlap*0.01))
 
     # read .xyz file
     global pcd 
@@ -42,7 +42,7 @@ def pointCloudProcess_v1(diameter, overlap):
     o3d.visualization.draw_geometries([pcd], window_name="test", point_show_normal=True)  
     print("origin : ",pcd)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=sample_dis)
+    downpcd = pcd.voxel_down_sample(voxel_size=1)
     #o3d.visualization.draw_geometries([downpcd])
     print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
@@ -61,7 +61,7 @@ def pointCloudProcess_v1(diameter, overlap):
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
     #modular design not yet
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10.])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 1000.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
     
     return 0
@@ -343,6 +343,7 @@ def pointCloudSampleBot(diameter):
         pcdCNT = pcdCNT + 1
 
     return 0
+
 
 def fingMaximumBondary(pcdSample_pre, diameter):
     global max_x
@@ -890,22 +891,5 @@ def main():
     print("time used :", end - start, "sec")
 
 
-def shose():
-    global OutputFile
-    global FileName
-    OutputFile = "P004.LS"
-    FileName = "004_rand.xyz"
-    diameter = int(input("[Q]dimeter : "))
-    overlap = int(input("[Q]overlap : "))
-    pointCloudProcess_v1(diameter, overlap)
-
-    global points
-    points = np.asarray(pcd.points)
-
-    backAndForth(points)
-    writeLsFile(OutputFile, waypoints)
-
-
 if __name__ == '__main__':
-    #main()
-    shose()
+    main()
