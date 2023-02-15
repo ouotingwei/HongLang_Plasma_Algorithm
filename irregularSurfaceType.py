@@ -101,7 +101,7 @@ def fingMaximumBondary(pcdSample_pre):
     return 0 
 
 def pointCloudSample(times):
-    sampleRange  = 5
+    sampleRange  = 0.5
     pointCloud = np.asarray(pcd.points)
     fingMaximumBondary(pointCloud)
 
@@ -110,28 +110,245 @@ def pointCloudSample(times):
     x = max_x - min_x
     sample_x = x / times
 
-    print(pointCloud)
+    #print(pointCloud)
 
     cnt = 0
     for i in range(len(pointCloud)):
         for j in range(times):
-            temp = pointCloud[0][0] - (sample_x * j)
-            temp = temp % sample_x
+            temp = max_x - (j * sample_x)
 
-            if temp < sampleRange and temp > (-1 * sampleRange):
-                pcdSample[i][0] = pointCloud[i][0]
-                pcdSample[i][1] = pointCloud[i][1]
-                pcdSample[i][2] = pointCloud[i][2]
-                pcdSample[i][3] = 1
+            up = temp + sampleRange
+            down = temp - sampleRange
+
+            if pointCloud[i][0] < up and pointCloud[i][0] > down:
+                pcdSample[cnt][0] = pointCloud[i][0]
+                pcdSample[cnt][1] = pointCloud[i][1]
+                pcdSample[cnt][2] = pointCloud[i][2]
+                pcdSample[cnt][3] = 1
 
                 cnt = cnt + 1
     
+    '''
     i = 0
     while i < 10000:
         if pcdSample[i][3] == 1:
             print(pcdSample[i][0], pcdSample[i][1], pcdSample[i][2])
 
         i = i + 1
+    '''
+
+    i = 0
+    size  = 0
+    while i < 10000:
+        if pcdSample[i][3] == 1:
+            size = size + 1
+        
+        i = i + 1
+    
+    #print(size)
+    pcdDownSample = np.zeros((size, 3), float)
+
+    i = 0 
+    while i < size:
+        pcdDownSample[i][0] = pcdSample[i][0]
+        pcdDownSample[i][1] = pcdSample[i][1]
+        pcdDownSample[i][2] = pcdSample[i][2]
+
+        i = i + 1
+
+    backAndForth(pcdDownSample)
+
+    return 0
+    
+
+def backAndForth(Point):
+   #ARRANGE IN ORDER X
+    n = len(Point)
+    for i in range(n-1):
+        for j in range(n-i-1):
+            if Point[j][0] > Point[j+1][0]:
+                Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
+                Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
+
+    #INITALIZATION
+    CountingArray = np.zeros(((len(Point) + 1, 5)), float)
+    i = 0
+    flag = 0
+    time = 1
+    CountingArray[0][3] = 1
+    CountingArray[len(Point)-1][0] = Point[len(Point)-1][0]
+    CountingArray[len(Point)-1][1] = Point[len(Point)-1][1]
+    CountingArray[len(Point)-1][2] = Point[len(Point)-1][2]
+
+    CountingArray[len(Point)][3] = 1
+    CountingArray[len(Point)][4] = 4
+
+    #SORT
+    while i < len(Point) - 1:
+        CountingArray[i][0] = Point[i][0]
+        CountingArray[i][1] = Point[i][1]
+        CountingArray[i][2] = Point[i][2]
+        
+        if round(Point[i+1][0]) != round(Point[i][0]) :
+            flag = flag + 1
+            CountingArray[i+1][4] = flag
+            CountingArray[i+1][3] = time = 1
+        else:
+            CountingArray[i+1][4] = flag
+            time = time + 1
+            CountingArray[i+1][3] = time 
+
+        i = i + 1
+
+    #ARRANGE IN ORDER Y
+    i = 0
+    while i < len(Point) :
+
+        if CountingArray[i+1][3] == 1 :
+            n = int(CountingArray[i][3])
+
+            if (int(CountingArray[i][4]) % 2) == 0 or int(CountingArray[i][4]) == 0:
+                cnt = 0
+                TempArray = np.zeros(((n, 5)), float)
+
+                while cnt < n:
+                    TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
+                    TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
+                    TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    cnt = cnt + 1           
+
+                for temp in range(n-1):
+                    for j in range(n-temp-1):
+                        if TempArray[j][1] > TempArray[j+1][1]:
+                            TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
+                            TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]     
+                        
+                cnt = 0
+                while cnt < n:
+                    CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
+                    CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
+                    CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    cnt = cnt + 1
+
+            elif (int(CountingArray[i][4]) % 2) == 1:
+                cnt = 0
+                TempArray = np.zeros(((n, 5)), float)
+
+                while cnt < n:
+                    TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
+                    TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
+                    TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    cnt = cnt + 1  
+
+                for temp in range(n-1):
+                    for j in range(n-temp-1):
+                        if TempArray[j][1] < TempArray[j+1][1]:
+                            TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
+                            TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                        
+                cnt = 0
+                while cnt < n:
+                    CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
+                    CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
+                    CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    cnt = cnt + 1
+ 
+        i = i + 1
+    
+    PArray = np.zeros(((len(Point) + 2  , 3)), float)
+
+    i = 0
+    while i < len(Point):
+        PArray[i][0] = CountingArray[i][0]
+        PArray[i][1] = CountingArray[i][1] 
+        PArray[i][2] = CountingArray[i][2] + 20
+
+        i = i + 1
+
+    # output ordered waypoints
+    workingSpaceTF(PArray, np.zeros(((len(Point) + 2, 3)), float))
+
+
+def workingSpaceTF(Position,Vector):
+
+    n = len(Position)
+    if(n!=len(Vector)):
+        print("length error")
+        exit() 
+
+    global waypoints
+    waypoints = []
+
+    theta = 60*(3.1415/180)
+    rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
+
+    transition_p = [210.000 , -375.000, -350.000]
+    # transition_v = [90, 0, 90-theta*(180/3.1415)]
+    transition_v = [90, 0, 90]
+
+    # initial position
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+
+    for i in range(0, n-2): 
+        # transform points to workspace     
+        Position_tf = np.matmul(Position[i], rotation_matrix) ## rotation
+        Position_tf = Position_tf + transition_p ## transition
+
+        # transform vector to workspace 
+        Vector_tf = np.array([Vector[i][0], Vector[i][1], Vector[i][2]]) 
+        Vector_tf = Vector_tf + transition_v ## transition
+        
+        # output watpoints
+        waypoints.append(WayPoints(Position_tf[0], Position_tf[1], Position_tf[2], Vector_tf[0], Vector_tf[1], Vector_tf[2]))
+    
+    # end position
+    waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
+
+    return 0
+
+
+def writeLsFile(file, waypoints):
+    f = open(file, 'w')
+    f.write("/PROG  "+OutputFile+"\n")
+    f.write("/ATTR\n")
+    f.write("OWNER       = MNEDITOR;\n")
+    f.write("COMMENT     = \"\";\n")
+    f.write("PROG_SIZE   = 636;\n")
+    f.write("CREATE      = DATE 23-01-07  TIME 11:59:14;\n")
+    f.write("MODIFIED    = DATE 23-01-07  TIME 12:02:18;\n")
+    f.write("FILE_NAME   = ;\n")
+    f.write("VERSION     = 0;\n")
+    f.write("LINE_COUNT  = 4;\n")
+    f.write("MEMORY_SIZE = 992;\n")
+    f.write("PROTECT     = READ_WRITE;\n")
+    f.write("TCD:  STACK_SIZE	= 0,\n")
+    f.write("      TASK_PRIORITY	= 50,\n")
+    f.write("      TIME_SLICE	= 0,\n")
+    f.write("      BUSY_LAMP_OFF	= 0,\n")
+    f.write("      ABORT_REQUEST	= 0,\n")
+    f.write("      PAUSE_REQUEST	= 0;\n")
+    f.write("DEFAULT_GROUP	= 1,*,*,*,*;\n")
+    f.write("CONTROL_CODE	= 00000000 00000000;\n")
+
+    f.write("/MN\n")
+    f.write("   1:J P[1] 100% FINE    ;\n")
+    for i in range(2,len(waypoints)+1):
+        f.write("   " + str(i) + ":L P[" + str(i) + "] " + str(waypoints[i-1].V) + "mm/sec " + waypoints[i-1].C + "    ;" + "\n")
+
+    f.write("/POS\n")
+    for i in range(1,len(waypoints)+1):
+        f.write("P[" + str(i) + "]{\n")
+        f.write("   GP1:\n")
+        f.write("	UF : 0, UT : 6,		CONFIG : 'N U T, 0, 0, 0',\n")
+        f.write("	X =  " + "{:.3f}".format(waypoints[i-1].x) + "  mm,	Y =   "+ "{:.3f}".format(waypoints[i-1].y) + "  mm,	Z =   "+ "{:.3f}".format(waypoints[i-1].z) + "  mm,\n")
+        f.write("	W =  " + "{:.3f}".format(waypoints[i-1].W) + " deg,	P =   " + "{:.3f}".format(waypoints[i-1].P) + " deg,	R =   " + "{:.3f}".format(waypoints[i-1].R) + " deg\n")
+        f.write("};\n")
+
+    f.write("/END\n")
+    f.close()
+    return 0
 
 
 def main():
@@ -141,8 +358,14 @@ def main():
     FileName = "004_rand.xyz"
     times = int(input("[Q]等分數 : "))
 
+    start = time.time()
+
     pointCloudProcess_v1()
     pointCloudSample(times)
+    writeLsFile(OutputFile, waypoints)
+
+    end = time.time()
+    print("time used :", end - start, "sec")
 
 
 if __name__ == '__main__':
