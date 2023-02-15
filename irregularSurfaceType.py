@@ -72,6 +72,12 @@ def fingMaximumBondary(pcdSample_pre):
     global max_y
     global min_y
     global max_z
+
+    max_x = 0
+    min_x = 0
+    max_y = 0
+    min_y = 0
+    max_z = 0
     
     i = 0
     while i < len(pcdSample_pre) - 1:
@@ -95,9 +101,37 @@ def fingMaximumBondary(pcdSample_pre):
     return 0 
 
 def pointCloudSample(times):
-    range  = 0.5
+    sampleRange  = 5
+    pointCloud = np.asarray(pcd.points)
+    fingMaximumBondary(pointCloud)
 
-    pcdSample = np.zeros((10000, 6), float)
+    pcdSample = np.zeros((10000, 4), float) # [x][y][z][write flag]
+
+    x = max_x - min_x
+    sample_x = x / times
+
+    print(pointCloud)
+
+    cnt = 0
+    for i in range(len(pointCloud)):
+        for j in range(times):
+            temp = pointCloud[0][0] - (sample_x * j)
+            temp = temp % sample_x
+
+            if temp < sampleRange and temp > (-1 * sampleRange):
+                pcdSample[i][0] = pointCloud[i][0]
+                pcdSample[i][1] = pointCloud[i][1]
+                pcdSample[i][2] = pointCloud[i][2]
+                pcdSample[i][3] = 1
+
+                cnt = cnt + 1
+    
+    i = 0
+    while i < 10000:
+        if pcdSample[i][3] == 1:
+            print(pcdSample[i][0], pcdSample[i][1], pcdSample[i][2])
+
+        i = i + 1
 
 
 def main():
