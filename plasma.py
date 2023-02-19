@@ -871,19 +871,19 @@ def main():
     times_x = int(input("[Q]times_x : "))
     times_z = int(input("[Q]times_z : "))
     
-    FileName = model + "_rand.xyz"
+    FileName = "input/" + model + "_rand.xyz"
     print("FileName = ", FileName)
     
     start = time.time()
     
     pointCloudSampleWall(diameter)
-    OutputFile = "W" + model + ".LS"
+    OutputFile = "output/" + "W" + model + ".LS"
     Wall()
     writeLsFile(OutputFile, waypoints)
 
     pointCloudSampleBot(diameter)
 
-    OutputFile = "B" + model + ".LS"
+    OutputFile = "output/" + "B" + model + ".LS"
     BottomFlat()
     writeLsFile(OutputFile, waypoints)
 

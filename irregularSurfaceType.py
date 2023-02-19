@@ -354,8 +354,8 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "P004.LS"
-    FileName = "004_rand.xyz"
+    OutputFile = "output/ShellTest.LS"
+    FileName = "input/shelltest.xyz"
     times = int(input("[Q]等分數 : "))
 
     start = time.time()
