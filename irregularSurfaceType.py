@@ -61,7 +61,7 @@ def pointCloudProcess_v1():
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
     #modular design not yet
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 1000.])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 10000.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
     
     return 0
@@ -103,14 +103,13 @@ def fingMaximumBondary(pcdSample_pre):
 def pointCloudSample(times):
     sampleRange  = 0.5
     pointCloud = np.asarray(pcd.points)
+    NormalCloud = np.asarray(pcd.normals)
     fingMaximumBondary(pointCloud)
 
-    pcdSample = np.zeros((10000, 4), float) # [x][y][z][write flag]
+    pcdSample = np.zeros((10000, 7), float) # [x][y][z][a][b][c][write flag]
 
     x = max_x - min_x
     sample_x = x / times
-
-    #print(pointCloud)
 
     cnt = 0
     for i in range(len(pointCloud)):
@@ -124,38 +123,36 @@ def pointCloudSample(times):
                 pcdSample[cnt][0] = pointCloud[i][0]
                 pcdSample[cnt][1] = pointCloud[i][1]
                 pcdSample[cnt][2] = pointCloud[i][2]
-                pcdSample[cnt][3] = 1
+                pcdSample[cnt][3] = NormalCloud[i][0]
+                pcdSample[cnt][4] = NormalCloud[i][1]
+                pcdSample[cnt][5] = NormalCloud[i][2]
+                pcdSample[cnt][6] = 1
 
                 cnt = cnt + 1
-    
-    '''
-    i = 0
-    while i < 10000:
-        if pcdSample[i][3] == 1:
-            print(pcdSample[i][0], pcdSample[i][1], pcdSample[i][2])
-
-        i = i + 1
-    '''
 
     i = 0
     size  = 0
     while i < 10000:
-        if pcdSample[i][3] == 1:
+        if pcdSample[i][6] == 1:
             size = size + 1
         
         i = i + 1
     
     #print(size)
-    pcdDownSample = np.zeros((size, 3), float)
+    pcdDownSample = np.zeros((size, 6), float) # [point][normal]
 
     i = 0 
     while i < size:
         pcdDownSample[i][0] = pcdSample[i][0]
         pcdDownSample[i][1] = pcdSample[i][1]
         pcdDownSample[i][2] = pcdSample[i][2]
+        pcdDownSample[i][3] = pcdSample[i][3]
+        pcdDownSample[i][4] = pcdSample[i][4]
+        pcdDownSample[i][5] = pcdSample[i][5]
 
         i = i + 1
 
+    #print(pcdDownSample)
     backAndForth(pcdDownSample)
 
     return 0
@@ -169,10 +166,13 @@ def backAndForth(Point):
             if Point[j][0] > Point[j+1][0]:
                 Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
                 Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
-                Point[j][1], Point[j+1][2] = Point[j+1][2], Point[j][2]
+                Point[j][2], Point[j+1][2] = Point[j+1][2], Point[j][2]
+                Point[j][3], Point[j+1][3] = Point[j+1][3], Point[j][3]
+                Point[j][4], Point[j+1][4] = Point[j+1][4], Point[j][4]
+                Point[j][5], Point[j+1][5] = Point[j+1][5], Point[j][5]
 
     #INITALIZATION
-    CountingArray = np.zeros(((len(Point) + 1, 5)), float)
+    CountingArray = np.zeros(((len(Point) + 1, 8)), float)
     i = 0
     flag = 0
     time = 1
@@ -180,24 +180,30 @@ def backAndForth(Point):
     CountingArray[len(Point)-1][0] = Point[len(Point)-1][0]
     CountingArray[len(Point)-1][1] = Point[len(Point)-1][1]
     CountingArray[len(Point)-1][2] = Point[len(Point)-1][2]
+    CountingArray[len(Point)-1][3] = Point[len(Point)-1][3]
+    CountingArray[len(Point)-1][4] = Point[len(Point)-1][4]
+    CountingArray[len(Point)-1][5] = Point[len(Point)-1][5]
 
-    CountingArray[len(Point)][3] = 1
-    CountingArray[len(Point)][4] = 4
+    CountingArray[len(Point)][6] = 1
+    CountingArray[len(Point)][7] = 4
 
     #SORT
     while i < len(Point) - 1:
         CountingArray[i][0] = Point[i][0]
         CountingArray[i][1] = Point[i][1]
         CountingArray[i][2] = Point[i][2]
+        CountingArray[i][3] = Point[i][3]
+        CountingArray[i][4] = Point[i][4]
+        CountingArray[i][5] = Point[i][5]
         
         if round(Point[i+1][0]) != round(Point[i][0]) :
             flag = flag + 1
-            CountingArray[i+1][4] = flag
-            CountingArray[i+1][3] = time = 1
+            CountingArray[i+1][7] = flag
+            CountingArray[i+1][6] = time = 1
         else:
-            CountingArray[i+1][4] = flag
+            CountingArray[i+1][7] = flag
             time = time + 1
-            CountingArray[i+1][3] = time 
+            CountingArray[i+1][6] = time 
 
         i = i + 1
 
@@ -205,17 +211,20 @@ def backAndForth(Point):
     i = 0
     while i < len(Point) :
 
-        if CountingArray[i+1][3] == 1 :
-            n = int(CountingArray[i][3])
+        if CountingArray[i+1][6] == 1 :
+            n = int(CountingArray[i][6])
 
-            if (int(CountingArray[i][4]) % 2) == 0 or int(CountingArray[i][4]) == 0:
+            if (int(CountingArray[i][7]) % 2) == 0 or int(CountingArray[i][7]) == 0:
                 cnt = 0
-                TempArray = np.zeros(((n, 5)), float)
+                TempArray = np.zeros(((n, 8)), float)
 
                 while cnt < n:
                     TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
                     TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
                     TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    TempArray[cnt][3] = CountingArray[i-n+cnt+1][3]
+                    TempArray[cnt][4] = CountingArray[i-n+cnt+1][4]
+                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
                     cnt = cnt + 1           
 
                 for temp in range(n-1):
@@ -223,23 +232,32 @@ def backAndForth(Point):
                         if TempArray[j][1] > TempArray[j+1][1]:
                             TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
                             TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
-                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]     
+                            TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                            TempArray[j][3], TempArray[j+1][3] = TempArray[j+1][3], TempArray[j][3]
+                            TempArray[j][4], TempArray[j+1][4] = TempArray[j+1][4], TempArray[j][4]
+                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]     
                         
                 cnt = 0
                 while cnt < n:
                     CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
                     CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
                     CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    CountingArray[i-n+cnt+1][3] = TempArray[cnt][3]
+                    CountingArray[i-n+cnt+1][4] = TempArray[cnt][4]
+                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
                     cnt = cnt + 1
 
-            elif (int(CountingArray[i][4]) % 2) == 1:
+            elif (int(CountingArray[i][7]) % 2) == 1:
                 cnt = 0
-                TempArray = np.zeros(((n, 5)), float)
+                TempArray = np.zeros(((n, 8)), float)
 
                 while cnt < n:
                     TempArray[cnt][0] = CountingArray[i-n+cnt+1][0]
                     TempArray[cnt][1] = CountingArray[i-n+cnt+1][1]
                     TempArray[cnt][2] = CountingArray[i-n+cnt+1][2]
+                    TempArray[cnt][3] = CountingArray[i-n+cnt+1][3]
+                    TempArray[cnt][4] = CountingArray[i-n+cnt+1][4]
+                    TempArray[cnt][5] = CountingArray[i-n+cnt+1][5]
                     cnt = cnt + 1  
 
                 for temp in range(n-1):
@@ -248,17 +266,24 @@ def backAndForth(Point):
                             TempArray[j][0], TempArray[j+1][0] = TempArray[j+1][0], TempArray[j][0]
                             TempArray[j][1], TempArray[j+1][1] = TempArray[j+1][1], TempArray[j][1]
                             TempArray[j][2], TempArray[j+1][2] = TempArray[j+1][2], TempArray[j][2]
+                            TempArray[j][3], TempArray[j+1][3] = TempArray[j+1][3], TempArray[j][3]
+                            TempArray[j][4], TempArray[j+1][4] = TempArray[j+1][4], TempArray[j][4]
+                            TempArray[j][5], TempArray[j+1][5] = TempArray[j+1][5], TempArray[j][5]
                         
                 cnt = 0
                 while cnt < n:
                     CountingArray[i-n+cnt+1][0] = TempArray[cnt][0]
                     CountingArray[i-n+cnt+1][1] = TempArray[cnt][1]
                     CountingArray[i-n+cnt+1][2] = TempArray[cnt][2]
+                    CountingArray[i-n+cnt+1][3] = TempArray[cnt][3]
+                    CountingArray[i-n+cnt+1][4] = TempArray[cnt][4]
+                    CountingArray[i-n+cnt+1][5] = TempArray[cnt][5]
                     cnt = cnt + 1
  
         i = i + 1
     
     PArray = np.zeros(((len(Point) + 2  , 3)), float)
+    NArray = np.zeros(((len(Point) + 2  , 3)), float)
 
     i = 0
     while i < len(Point):
@@ -267,9 +292,18 @@ def backAndForth(Point):
         PArray[i][2] = CountingArray[i][2] + 20
 
         i = i + 1
+    
+    i = 0
+    while i < len(Point):
+        NArray[i][0] = CountingArray[i][3]
+        NArray[i][1] = CountingArray[i][4] 
+        NArray[i][2] = CountingArray[i][5]
+
+        i = i + 1
 
     # output ordered waypoints
     workingSpaceTF(PArray, np.zeros(((len(Point) + 2, 3)), float))
+    return 0
 
 
 def workingSpaceTF(Position,Vector):
@@ -355,8 +389,8 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "S001.LS"
-    FileName = "input/test.xyz"
+    OutputFile = "S004.LS"
+    FileName = "input/004_rand.xyz"
     times = int(input("[Q]等分數 : "))
 
     start = time.time()
