@@ -169,6 +169,7 @@ def backAndForth(Point):
             if Point[j][0] > Point[j+1][0]:
                 Point[j][0], Point[j+1][0] = Point[j+1][0], Point[j][0]
                 Point[j][1], Point[j+1][1] = Point[j+1][1], Point[j][1]
+                Point[j][1], Point[j+1][2] = Point[j+1][2], Point[j][2]
 
     #INITALIZATION
     CountingArray = np.zeros(((len(Point) + 1, 5)), float)
@@ -354,15 +355,15 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "output/ShellTest.LS"
-    FileName = "input/shelltest.xyz"
+    OutputFile = "S001.LS"
+    FileName = "input/test.xyz"
     times = int(input("[Q]等分數 : "))
 
     start = time.time()
 
     pointCloudProcess_v1()
     pointCloudSample(times)
-    writeLsFile(OutputFile, waypoints)
+    writeLsFile("output/" + OutputFile, waypoints)
 
     end = time.time()
     print("time used :", end - start, "sec")
