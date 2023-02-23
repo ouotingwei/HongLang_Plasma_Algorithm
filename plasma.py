@@ -44,7 +44,7 @@ def pointCloudProcess_v1(diameter, overlap):
 
     downpcd = pcd.voxel_down_sample(voxel_size=1)
     #o3d.visualization.draw_geometries([downpcd])
-    print('downsample pointcloud',downpcd)
+    #print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
@@ -77,7 +77,7 @@ def pointCloudSampleWall(diameter):
 
     downpcd = pcd.voxel_down_sample(voxel_size=1) 
     #o3d.visualization.draw_geometries([downpcd])
-    print('downsample pointcloud',downpcd)
+    #print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
@@ -225,7 +225,7 @@ def pointCloudSampleBot(diameter):
 
     downpcd = pcd.voxel_down_sample(voxel_size=1) 
     #o3d.visualization.draw_geometries([downpcd])
-    print('downsample pointcloud',downpcd)
+    #print('downsample pointcloud',downpcd)
     o3d.io.write_point_cloud('result_down.ply', downpcd)
     pcd = o3d.io.read_point_cloud("result_down.ply")
 
@@ -853,6 +853,25 @@ def findMaxXY():
     
     return maxX, maxY
 
+def overlapCal(D, Z):
+    DIS = (max_x - min_x) / times_x
+    overlap = DIS / D * 100
+
+    if overlap > 100 or overlap < 0:
+        print("[W]input error")
+    
+    else:
+        print("[A]Overlap(Bot) : ", int(overlap), "%")
+
+    DIS = max_z / times_z
+    overlap = DIS / Z * 100
+
+    if overlap > 100 or overlap < 0:
+        print("[W]input error")
+    
+    else:
+        print("[A]Overlap(Wall) : ", int(overlap), "%")
+
     
 def main():
     global FileName
@@ -863,16 +882,16 @@ def main():
     global test_z 
 
     test_z = 75
-    gate = 5
+    plasmaZ = 10
     times_y = 2
-    diameter = 50
+    diameter = 40
 
     model = str(input("[Q]model : "))
     times_x = int(input("[Q]times_x : "))
     times_z = int(input("[Q]times_z : "))
     
     FileName = "input/" + model + "_rand.xyz"
-    print("FileName = ", FileName)
+    print("input FileName = ", FileName)
     
     start = time.time()
     
@@ -884,8 +903,11 @@ def main():
     pointCloudSampleBot(diameter)
 
     OutputFile = "output/" + "B" + model + ".LS"
+    print("output FileName = ", OutputFile)
     BottomFlat()
     writeLsFile(OutputFile, waypoints)
+
+    overlapCal(diameter, plasmaZ)
 
     end = time.time()
     print("time used :", end - start, "sec")
