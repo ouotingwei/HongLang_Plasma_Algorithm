@@ -61,7 +61,7 @@ def pointCloudProcess_v1():
             np.asarray(pcd.colors)[i, :] = [0, 0, 1]
 
     #modular design not yet
-    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 100000.])) 
+    o3d.geometry.PointCloud.orient_normals_towards_camera_location(pcd, camera_location=np.array([0.0, 0.0, 1000000.])) 
     o3d.visualization.draw_geometries([pcd], window_name="result", point_show_normal=True)  
     
     return 0
@@ -287,7 +287,7 @@ def backAndForth(Point):
 
     i = 0
     while i < len(Point):
-        PArray[i][0] = CountingArray[i][0]
+        PArray[i][0] = CountingArray[i][0] # - 150
         PArray[i][1] = CountingArray[i][1] 
         PArray[i][2] = CountingArray[i][2] + 20
 
@@ -316,13 +316,14 @@ def workingSpaceTF(Position,Vector):
     global waypoints
     waypoints = []
 
-    theta = 60*(3.1415/180)
+    theta = 0*(3.1415/180)
     rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
 
-    transition_p = [210.000 , -375.000, -350.000]
+    # transition_p = [350.000 , 0.000, -350.000]
+    transition_p = [300.000 , 0.000, -350.000 + 16.000]
     # transition_v = [90, 0, 90-theta*(180/3.1415)]
     # transition_v = [90, 0, 90]
-    transition_v = [90, 0, 90 + (90 - theta*(180/3.1415))]
+    transition_v = [-180, 0, 0]
 
     # initial position
     waypoints.append(WayPoints(transition_p[0], transition_p[1], transition_p[2] + 100, transition_v[0], transition_v[1], transition_v[2]))
@@ -336,11 +337,12 @@ def workingSpaceTF(Position,Vector):
         # print(Vector[i][0], Vector[i][1], Vector[i][2])
         # transform vector to workspace 
         phi  = math.atan2(Vector[i][1], Vector[i][2])*180/3.1415
+        phi /= 3 # scall
         if(i>0 and abs(phi - tmp_phi > 150)): 
             print(phi, tmp_phi)
             # phi = tmp_phi
         tmp_phi = phi
-        Vector_tf = np.array([phi, 0, 0]) 
+        Vector_tf = np.array([-phi, 0, 0]) 
         Vector_tf = Vector_tf + transition_v ## transition
         
         # output watpoints
@@ -397,7 +399,7 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "PNS00403.LS"
+    OutputFile = "PNS0403.LS"
     FileName = "input/004_rand.xyz"
     times = int(input("[Q]等分數 : "))
 
