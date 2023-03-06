@@ -573,41 +573,19 @@ def circularArrangement(Point):
             cnt = 1
 
         i = i + 1
-
-    mark = 0
-    while CountingArray[mark][0] != 0 and CountingArray[mark][1] != 0:
-        mark = mark + 1
-
-    Array = np.zeros(((len(Point)  , 3)), float)
-
-    i = 0
-    cnt = 0
-    while i < len(Array):
-        if i != mark:
-            Array[i][0] = CountingArray[cnt][0]
-            Array[i][1] = CountingArray[cnt][1]
-            Array[i][2] = CountingArray[cnt][2]
-            
-            i = i + 1
-            cnt = cnt + 1
-        
-        else:
-            cnt = cnt + 1
-            Array[i][0] = CountingArray[cnt][0]
-            Array[i][1] = CountingArray[cnt][1]
-            Array[i][2] = CountingArray[cnt][2]
-
-            i = i + 1
     
     i = 0
     while i < len(Point):
-        Point[i][0] = Array[i][0]
-        Point[i][1] = Array[i][1] 
-        Point[i][2] = Array[i][2] + test_z
+        Point[i][0] = CountingArray[i][0]
+        Point[i][1] = CountingArray[i][1] 
+        Point[i][2] = CountingArray[i][2] + test_z
 
         i = i + 1
     
-    workingSpaceTF(Point, np.zeros(((len(Point) , 3)), float))
+    Normal = np.zeros(((len(Point), 3)), float)
+    Normal = wallNormalV2(CountingArray)
+
+    workingSpaceTF(Point, Normal)
     
     
 # !
@@ -681,81 +659,56 @@ def BottomFlat():
 
     return 0
 
-
-def wallNormalProccessing(d, CountingArray):
-    Point = np.zeros(((len(CountingArray)-3, 3)), float)
-    Parall = np.zeros(((len(CountingArray)-3, 3)), float)
-
-    # initialize Point
-    i = 0
-    while i < len(Point):
-        Point[i][0] = CountingArray[i][0]
-        Point[i][1] = CountingArray[i][1] 
-        Point[i][2] = CountingArray[i][2] 
-
-        i = i + 1
-
-    # find the slope of wall
-    slope = 0
-    cnt = 1
-    for i in range(len(Point)):
-        Closest_Point = np.array([100, 100, 100], float)
-        for j in range(len(Point)):
-            if((Point[j][2] > Point[i][2] + 5 or Point[j][2] < Point[i][2] - 5) and (getDistance(Point[j], Point[i]) < getDistance(Closest_Point, Point[i]))):
-                    Closest_Point = Point[j]
-        
-        delta_x = abs(Closest_Point[0] - Point[i][0])
-        delta_y = abs(Closest_Point[1] - Point[i][1])
-        delta_z = abs(Closest_Point[2] - Point[i][2])
-        new_slope = math.atan2(delta_z**2, (delta_x**2 + delta_y**2)**0.5) ##\\*180/3.1415
-
-        if(i==0): slope += new_slope
-        if(i>0 and new_slope>(slope/cnt-5) and new_slope<(slope/cnt+5)):
-            slope += new_slope
-            cnt  += 1
-    
-    slope /= cnt
-
-    # let end_effector keep a distance d and be parallel to the wall
+def wallNormalV2(CountingArray):
     max_x, max_y = findMaxXY()
     corner = math.atan2(max_y, max_x)*180/3.1415
 
-    for i in range(len(Point)-1):
-        if(CountingArray[i][3] <= corner and CountingArray[i][3] > -corner ):
-            Point[i][0] = Point[i][0] - d*math.sin(slope)
-            Point[i][1] = Point[i][1] - d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180) 
-            Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = 0.000
-            Parall[i][1] = 90 - slope*180/3.1415
-            Parall[i][2] = 0.000
+    theta = 25
+    offset = 5
+    Normal = np.zeros(((len(CountingArray) -2, 3)), float)
+    for i in range(len(Normal) - 1):
+        if(CountingArray[i][3] <= corner-offset and CountingArray[i][3] > -corner+offset ):
+            Normal[i][0] = 0.000
+            Normal[i][1] = -theta
+            Normal[i][2] = 0.000
 
-        if(CountingArray[i][3] <= (180 - corner) and CountingArray[i][3] > corner ):
-            Point[i][0] = Point[i][0] - d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
-            Point[i][1] = Point[i][1] - d*math.sin(slope)
-            Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = - (90 - slope*180/3.1415)
-            Parall[i][1] = 0.000
-            Parall[i][2] = 0.000
+        if(CountingArray[i][3] <= corner+offset and CountingArray[i][3] > corner-offset ):
+            Normal[i][0] = theta
+            Normal[i][1] = -theta
+            Normal[i][2] = 0.000
 
-        if(CountingArray[i][3] <= 180 and CountingArray[i][3] > (180 - corner) or  CountingArray[i][3] < (-180 + corner)  and CountingArray[i][3] >= -180):
-            Point[i][0] = Point[i][0] + d*math.sin(slope)
-            Point[i][1] = Point[i][1] + d*math.sin(slope)*math.tan(CountingArray[i][3]*3.1415/180)
-            Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = 0.000
-            Parall[i][1] = - (90 - slope*180/3.1415)
-            Parall[i][2] = 0.000
+        if(CountingArray[i][3] <= (180 - corner)-offset and CountingArray[i][3] > corner+offset ):
+            Normal[i][0] = theta
+            Normal[i][1] = 0.000
+            Normal[i][2] = 0.000
 
-        if(CountingArray[i][3] <= -corner and CountingArray[i][3] >= (-180 + corner)):
-            Point[i][0] = Point[i][0] + d*math.sin(slope)/math.tan(CountingArray[i][3]*3.1415/180)
-            Point[i][1] = Point[i][1] + d*math.sin(slope)
-            Point[i][2] = Point[i][2] + d*math.cos(slope)
-            Parall[i][0] = 90 - slope*180/3.1415
-            Parall[i][1] = 0.000
-            Parall[i][2] = 0.000
+        if(CountingArray[i][3] <= (180 - corner)+offset and CountingArray[i][3] > (180 - corner)-offset ):
+            Normal[i][0] = theta
+            Normal[i][1] = theta
+            Normal[i][2] = 0.000
 
-    return Point, Parall
+        if(CountingArray[i][3] <= 180 and CountingArray[i][3] > (180 - corner)+offset or  CountingArray[i][3] < (-180 + corner)+offset  and CountingArray[i][3] >= -180):
+            Normal[i][0] = 0.000
+            Normal[i][1] = theta
+            Normal[i][2] = 0.000
+
+        if(CountingArray[i][3] <= (-180 + corner)+offset and CountingArray[i][3] > (-180 + corner)-offset ):
+            Normal[i][0] = -theta
+            Normal[i][1] = theta
+            Normal[i][2] = 0.000
+
+        if(CountingArray[i][3] <= -corner-offset and CountingArray[i][3] >= (-180 + corner)-offset):
+            Normal[i][0] = -theta
+            Normal[i][1] = 0.000
+            Normal[i][2] = 0.000
+
+        if(CountingArray[i][3] <= -corner+offset and CountingArray[i][3] > -corner-offset ):
+            Normal[i][0] = -theta
+            Normal[i][1] = -theta
+            Normal[i][2] = 0.000
+
+    return Normal
     
-
 def workingSpaceTF(Position,Vector):
 
     n = len(Position)
