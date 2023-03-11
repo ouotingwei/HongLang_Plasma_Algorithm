@@ -320,7 +320,7 @@ def workingSpaceTF(Position,Vector):
     rotation_matrix = np.array([[math.cos(theta), -math.sin(theta), 0], [math.sin(theta), math.cos(theta), 0], [0,0,1]], float) ## rotate about z axis
 
     # transition_p = [350.000 , 0.000, -350.000]
-    transition_p = [300.000 , 0.000, -350.000 + 16.000]
+    transition_p = [350.000 , 0.000, -325.827 + 16.000]
     # transition_v = [90, 0, 90-theta*(180/3.1415)]
     # transition_v = [90, 0, 90]
     transition_v = [-180, 0, 0]
@@ -337,11 +337,17 @@ def workingSpaceTF(Position,Vector):
         # print(Vector[i][0], Vector[i][1], Vector[i][2])
         # transform vector to workspace 
         phi  = math.atan2(Vector[i][1], Vector[i][2])*180/3.1415
-        phi /= 3 # scall
+        
+        limit = 10
+        if(phi > limit): phi = limit
+        if(phi < -limit): phi = -limit
+        # print(phi)
+        '''
         if(i>0 and abs(phi - tmp_phi > 150)): 
-            print(phi, tmp_phi)
+            # print(phi, tmp_phi)
             # phi = tmp_phi
         tmp_phi = phi
+        '''
         Vector_tf = np.array([-phi, 0, 0]) 
         Vector_tf = Vector_tf + transition_v ## transition
         
@@ -399,7 +405,7 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "PNS0403.LS"
+    OutputFile = "PNS004.LS"
     FileName = "input/004_rand.xyz"
     times = int(input("[Q]等分數 : "))
 
