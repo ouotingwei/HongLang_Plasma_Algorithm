@@ -341,7 +341,7 @@ def workingSpaceTF(Position,Vector):
         limit = 10
         if(phi > limit): phi = limit
         if(phi < -limit): phi = -limit
-        print(phi)
+        # print(phi)
         '''
         if(i>0 and abs(phi - tmp_phi > 150)): 
             # print(phi, tmp_phi)
@@ -405,7 +405,7 @@ def writeLsFile(file, waypoints):
 def main():
     global OutputFile
     global FileName
-    OutputFile = "PNS0403.LS"
+    OutputFile = "PNS004.LS"
     FileName = "input/004_rand.xyz"
     times = int(input("[Q]等分數 : "))
 

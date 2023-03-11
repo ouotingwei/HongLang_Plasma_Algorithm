@@ -86,7 +86,7 @@ def pointCloudSampleWall(diameter):
     max_x, max_y = findMaxXY()
     w = max_x*2
     h = max_y*2
-    scale_size = ((w-7)*(h-10))/(w*h)
+    scale_size = ((w-10)*(h-10))/(w*h)
     pcd_small_size = pcd.scale(scale_size, (0, 0, 0))
     ####
 
@@ -815,7 +815,7 @@ def main():
     global test_z 
 
     # test_z = 75
-    test_z = 0
+    test_z = 10
     gate = 5
     times_y = 2
     diameter = 50
